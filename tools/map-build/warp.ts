@@ -23,7 +23,8 @@ interface Group {
 }
 type Step =
   | { type: 'squeeze'; about: number; rows: [number, number][] }
-  | { type: 'mls'; alpha?: number; groups: Group[] };
+  | { type: 'mls'; alpha?: number; groups: Group[] }
+  | { type: 'lens'; name?: string; center: LonLat; radius: number; scale: number };
 export interface WarpConfig {
   steps: Step[];
 }
@@ -116,25 +117,52 @@ function mls(step: Extract<Step, { type: 'mls' }>, place: (ll: LonLat) => XY): F
   };
 }
 
+// Radial magnifier: p' = c + (p - c) * (1 + (scale - 1) * (1 - r^2)^3), r = |p - c| / radius (identity outside).
+// The radial map stays monotone (no fold) for scale < 2.5.
+function lens(step: Extract<Step, { type: 'lens' }>, place: (ll: LonLat) => XY): Fn {
+  if (step.scale <= 0 || step.scale >= 2.5) throw new Error(`lens ${step.name}: scale must be in (0, 2.5)`);
+  const [cx, cy] = place(step.center);
+  const R2 = step.radius * step.radius;
+  return ([x, y]) => {
+    const d2 = (x - cx) ** 2 + (y - cy) ** 2;
+    if (d2 >= R2) return [x, y];
+    const f = 1 + (step.scale - 1) * (1 - d2 / R2) ** 3;
+    return [cx + (x - cx) * f, cy + (y - cy) * f];
+  };
+}
+
 /** Compiles warp.json into one function of projected board coordinates. */
 export function compileWarp(cfg: WarpConfig, project: (ll: LonLat) => XY): Fn {
   let f: Fn = (p) => p;
   for (const step of cfg.steps) {
     const prev = f;
     const place = (ll: LonLat) => prev(project(ll));
-    const g = step.type === 'squeeze' ? squeeze(step, place) : mls(step, place);
+    const g =
+      step.type === 'squeeze' ? squeeze(step, place) : step.type === 'mls' ? mls(step, place) : lens(step, place);
     f = (p) => g(prev(p));
   }
   return f;
 }
 
-/** Smallest Jacobian determinant of `f` over a grid covering `box` (projected, pre-warp coordinates). */
-export function checkFold(f: Fn, box: [number, number, number, number], stepSize: number): { minDet: number; at: XY } {
+/**
+ * Smallest Jacobian determinant of `f` on a grid of `cell`-sized cells around the given land vertices (projected,
+ * pre-warp coordinates). Folding over open ocean is harmless; folding near land would overlap territories.
+ */
+export function checkFold(f: Fn, land: Iterable<XY>, cell: number): { minDet: number; at: XY } {
+  const cells = new Set<string>();
+  for (const [x, y] of land) {
+    const gx = Math.floor(x / cell);
+    const gy = Math.floor(y / cell);
+    for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) cells.add(`${gx + i},${gy + j}`);
+  }
   const h = 0.5;
   let minDet = Infinity;
   let at: XY = [0, 0];
-  for (let x = box[0]; x <= box[2]; x += stepSize) {
-    for (let y = box[1]; y <= box[3]; y += stepSize) {
+  for (const k of [...cells].sort()) {
+    const [gx, gy] = k.split(',').map(Number) as XY;
+    {
+      const x = gx * cell;
+      const y = gy * cell;
       const c = f([x, y]);
       const fx = f([x + h, y]);
       const fy = f([x, y + h]);

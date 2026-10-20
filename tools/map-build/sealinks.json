@@ -1,3 +1,17 @@
 {
-  "links": {}
+  "links": {
+    "greenland|ontario": {
+      "from": { "lonlat": [-47, 61] },
+      "to": { "lonlat": [-88, 57] },
+      "through": { "board": [430, 198.5] }
+    },
+    "greenland|quebec": {
+      "from": { "lonlat": [-44, 60] },
+      "to": { "lonlat": [-61, 57.5] }
+    },
+    "indonesia|western_australia": {
+      "from": { "lonlat": [114, -8.5] },
+      "to": { "lonlat": [122, -17] }
+    }
+  }
 }

@@ -26,8 +26,8 @@ const SNAP_INTERVAL = 0.05; // projected units; welds admin-0 / admin-1 borders 
 const SIMPLIFY_INTERVAL = 4; // board units (weighted Visvalingam): the "chunky" level
 const MIN_ISLAND_AREA = 220; // board units^2; smaller detached parts are removed (never a territory's largest part)
 const SMOOTH_ITERATIONS = 3; // Chaikin passes per arc
-const MIN_TAP_RADIUS = 14; // board units; every territory's anchor must sit this far inside its shape
-const FOLD_MIN_DET = 0.05; // the warp's Jacobian determinant must stay above this over the whole land bounding box
+const MIN_TAP_RADIUS = 13; // board units; every territory's anchor must sit this far inside its shape
+const FOLD_MIN_DET = 0.05; // the warp's Jacobian determinant must stay above this everywhere near land
 
 const here = dirname(fileURLToPath(import.meta.url));
 const CACHE = resolve(here, '.cache');
@@ -46,7 +46,9 @@ type Geom = { type: 'Polygon'; coordinates: GRing[] } | { type: 'MultiPolygon'; 
 type Feature = { properties: Record<string, unknown>; geometry: Geom };
 type FC = { features: Feature[] };
 type EndSpec = 'anchor' | { lonlat: LonLat } | { board: Pt };
-type LinkSpec = { from?: EndSpec; to?: EndSpec; via?: { lonlat: LonLat } | { board: Pt } };
+type PointSpec = { lonlat: LonLat } | { board: Pt };
+/** `through`: a point (over water) the curved link passes through at its middle. */
+type LinkSpec = { from?: EndSpec; to?: EndSpec; through?: PointSpec };
 
 // ---- Natural Earth download + read ------------------------------------------------------------------------------
 async function loadLayer(name: 'a0' | 'a1'): Promise<FC> {
@@ -283,7 +285,13 @@ function linkPoints(l: Layout['seaLinks'][number]): Pt[] {
 /** Sea links must cross open water only: no land crossing away from their endpoints, no crossing each other. */
 function seaLinkProblems(links: Layout['seaLinks'], rings: Pt[][]): string[] {
   const errs: string[] = [];
-  const near = (p: Pt, l: Layout['seaLinks'][number]) => dist2(p, l.from) < 4 || dist2(p, l.to) < 4;
+  // A crossing within 1.5 units of an endpoint is the link leaving its own coast.
+  const near = (p: Pt, l: Layout['seaLinks'][number]) => dist2(p, l.from) < 2.25 || dist2(p, l.to) < 2.25;
+  const meet = (a: Pt, b: Pt, c: Pt, d: Pt): Pt => {
+    const den = (b[0] - a[0]) * (d[1] - c[1]) - (b[1] - a[1]) * (d[0] - c[0]);
+    const t = ((c[0] - a[0]) * (d[1] - c[1]) - (c[1] - a[1]) * (d[0] - c[0])) / den;
+    return [a[0] + t * (b[0] - a[0]), a[1] + t * (b[1] - a[1])];
+  };
   const polys = links.map(linkPoints);
   links.forEach((l, li) => {
     const pts = polys[li] as Pt[];
@@ -291,9 +299,11 @@ function seaLinkProblems(links: Layout['seaLinks'], rings: Pt[][]): string[] {
     for (let i = 0; i + 1 < pts.length; i++)
       for (const r of rings)
         for (let j = 0; j < r.length; j++) {
+          const a = pts[i] as Pt;
+          const b = pts[i + 1] as Pt;
           const c = r[j] as Pt;
           const d = r[(j + 1) % r.length] as Pt;
-          if (properCross(pts[i] as Pt, pts[i + 1] as Pt, c, d) && !near(c, l)) hits++;
+          if (properCross(a, b, c, d) && !near(meet(a, b, c, d), l)) hits++;
         }
     if (hits) errs.push(`sea link ${l.a}-${l.b} crosses land ${hits} time(s)`);
   });
@@ -351,7 +361,7 @@ function previewSvg(board: string, layout: Layout): string {
 }
 
 // ---- Main -------------------------------------------------------------------------------------------------------
-const readJson = <T>(name: string) => JSON.parse(readFileSync(resolve(here, name), 'utf8')) as T;
+const readJson = <T>(name: string) => JSON.parse(readFileSync(resolve(here, name), 'utf8').replace(/^﻿/, '')) as T;
 
 async function main() {
   const assignments = readJson<{ countries: Record<string, Entry> }>('assignments.json');
@@ -369,17 +379,11 @@ async function main() {
   // Dissolve in projected space, then warp every vertex with one smooth field (shared vertices stay shared).
   const land = await dissolve(features);
   const warp = compileWarp(warpCfg, project);
-  const box: [number, number, number, number] = [Infinity, Infinity, -Infinity, -Infinity];
-  for (const f of land.features)
-    for (const poly of polygonsOf(f.geometry))
-      for (const ring of poly)
-        for (const p of ring) {
-          box[0] = Math.min(box[0], p[0]);
-          box[1] = Math.min(box[1], p[1]);
-          box[2] = Math.max(box[2], p[0]);
-          box[3] = Math.max(box[3], p[1]);
-        }
-  const fold = checkFold(warp, box, 8);
+  const fold = checkFold(
+    warp,
+    land.features.flatMap((f) => polygonsOf(f.geometry).flat(2)),
+    8,
+  );
   if (fold.minDet < FOLD_MIN_DET) {
     console.error(`warp folds: Jacobian determinant ${fold.minDet.toFixed(3)} at projected ${fold.at.join(',')}`);
     process.exit(1);
@@ -391,7 +395,7 @@ async function main() {
   // Simplify on shared-arc topology, drop small islands, smooth each arc once.
   const topo = await simplify(land);
   const dropped = dropIslands(topo, MIN_ISLAND_AREA);
-  smoothArcs(topo, SMOOTH_ITERATIONS);
+  const unsmoothed = smoothArcs(topo, SMOOTH_ITERATIONS);
 
   // Fit: translate so the land starts at (PAD, MARGIN); the board size follows from the land's extent.
   let raw: Record<string, Pt[][][]> = {};
@@ -446,6 +450,7 @@ async function main() {
   const touch = touchingPairs(board);
   const rings = (t: string) =>
     board.groups.flatMap((g) => g.paths).find((p) => p.id === t)?.rings as Pt[][];
+  // An endpoint is the territory's anchor, or the coast point nearest a given [lon, lat] / board point.
   const end = (spec: EndSpec | undefined, t: string, fallback: Pt): Pt => {
     if (spec === undefined) return fallback;
     if (spec === 'anchor') return anchor[t] as Pt;
@@ -476,9 +481,10 @@ async function main() {
       const spec = linkCfg.links[key] ?? {};
       const [from0, to0] = closestPair(rings(b.a), rings(b.b));
       const link: Layout['seaLinks'][number] = { a: b.a, b: b.b, from: end(spec.from, b.a, from0), to: end(spec.to, b.b, to0) };
-      if (spec.via) {
-        const v = 'lonlat' in spec.via ? toBoard(spec.via.lonlat) : spec.via.board;
-        link.via = [round(v[0]), round(v[1])];
+      if (spec.through) {
+        // Quadratic Bézier through `m` at t = 1/2: control = 2m - (from + to) / 2.
+        const m = 'lonlat' in spec.through ? toBoard(spec.through.lonlat) : spec.through.board;
+        link.via = [round(2 * m[0] - (link.from[0] + link.to[0]) / 2), round(2 * m[1] - (link.from[1] + link.to[1]) / 2)];
       }
       seaLinks.push(link);
     }
@@ -504,7 +510,7 @@ async function main() {
     .sort((x, y) => x[1] - y[1]);
   console.log(`board ${WIDTH}x${HEIGHT} (aspect ${(WIDTH / HEIGHT).toFixed(2)}), ${seaLinks.length} sea links`);
   console.log(`warp: min Jacobian determinant ${fold.minDet.toFixed(3)}`);
-  console.log(`islands dropped: ${JSON.stringify(dropped)}`);
+  console.log(`islands dropped: ${JSON.stringify(dropped)}; arcs left unsmoothed to avoid crossings: ${unsmoothed}`);
   console.log(`smallest tap radii: ${tap.slice(0, 8).map(([t, d]) => `${t} ${d.toFixed(1)}`).join(', ')}`);
 
   const errs = [

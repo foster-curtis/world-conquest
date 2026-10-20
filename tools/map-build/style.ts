@@ -117,22 +117,149 @@ function chaikinClosed(pts: XY[]): XY[] {
   return out;
 }
 
-/** Chaikin corner cutting on every arc in use. An arc that alone forms a ring is smoothed as a closed loop. */
-export function smoothArcs(s: TopoShapes, iterations: number): void {
-  const closed = new Set<number>();
+const MIN_STEP = 0.8; // board units between kept vertices of a smoothed arc (outputs are rounded to 0.1)
+
+/** Drops vertices closer than `d` to the previous kept one; the endpoints always stay. */
+function thin(pts: XY[], d: number): XY[] {
+  const out: XY[] = [pts[0] as XY];
+  for (let i = 1; i < pts.length - 1; i++) {
+    const p = pts[i] as XY;
+    const q = out[out.length - 1] as XY;
+    if ((p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2 >= d * d) out.push(p);
+  }
+  out.push(pts[pts.length - 1] as XY);
+  return out;
+}
+
+/**
+ * Arcs joined end to end through nodes where only two arc ends meet (no real junction) form one chain, so smoothing
+ * never leaves a corner at such a node. Returns chains as oriented arc refs, and whether each chain is a closed loop.
+ */
+function chains(arcs: XY[][], used: Set<number>): { refs: number[]; closed: boolean }[] {
+  const key = (p: XY) => `${p[0]},${p[1]}`;
+  const ends = new Map<string, number[]>(); // node -> oriented refs leaving that node
+  for (const i of used) {
+    const a = arcs[i] as XY[];
+    for (const [k, ref] of [
+      [key(a[0] as XY), i],
+      [key(a[a.length - 1] as XY), ~i],
+    ] as [string, number][]) {
+      const l = ends.get(k) ?? [];
+      l.push(ref);
+      ends.set(k, l);
+    }
+  }
+  const startOf = (ref: number) => {
+    const a = arcs[ref >= 0 ? ref : ~ref] as XY[];
+    return key((ref >= 0 ? a[0] : a[a.length - 1]) as XY);
+  };
+  const endOf = (ref: number) => startOf(~ref);
+  const done = new Set<number>();
+  const out: { refs: number[]; closed: boolean }[] = [];
+  const walk = (first: number) => {
+    const refs = [first];
+    done.add(first >= 0 ? first : ~first);
+    for (;;) {
+      const node = endOf(refs[refs.length - 1] as number);
+      const leaving = ends.get(node) as number[];
+      if (leaving.length !== 2) return { refs, closed: false };
+      const back = ~(refs[refs.length - 1] as number);
+      const next = leaving[0] === back ? (leaving[1] as number) : (leaving[0] as number);
+      const idx = next >= 0 ? next : ~next;
+      if (done.has(idx)) return { refs, closed: next === refs[0] };
+      done.add(idx);
+      refs.push(next);
+    }
+  };
+  // Chains start at real junctions (degree != 2); what is left are loops.
+  for (const [node, leaving] of [...ends.entries()].sort((x, y) => (x[0] < y[0] ? -1 : 1)))
+    if (leaving.length !== 2) for (const ref of leaving) if (!done.has(ref >= 0 ? ref : ~ref)) out.push(walk(ref));
+  for (const i of [...used].sort((x, y) => x - y)) if (!done.has(i)) out.push(walk(i));
+  return out;
+}
+
+/**
+ * Chaikin corner cutting on every chain of arcs. Where a smoothed chain would cross another (narrow inlets,
+ * straits), both fall back to their unsmoothed shape, which mapshaper's simplification already keeps free of
+ * crossings. Returns how many chains fell back.
+ */
+export function smoothArcs(s: TopoShapes, iterations: number): number {
   const used = new Set<number>();
   for (const polys of Object.values(s.terr))
-    for (const poly of polys)
-      for (const ring of poly) {
-        for (const ref of ring) used.add(ref >= 0 ? ref : ~ref);
-        if (ring.length === 1) closed.add(ring[0] as number >= 0 ? (ring[0] as number) : ~(ring[0] as number));
-      }
-  s.arcs = s.arcs.map((arc, i) => {
-    if (!used.has(i)) return arc;
-    let a = arc;
-    for (let k = 0; k < iterations; k++) a = closed.has(i) ? chaikinClosed(a) : chaikinOpen(a);
-    return a;
+    for (const poly of polys) for (const ring of poly) for (const ref of ring) used.add(ref >= 0 ? ref : ~ref);
+  const original = s.arcs;
+  const list = chains(original, used);
+  // A chain's smoothed line goes on its first arc; its other arcs collapse to the chain's end point. Rings walk a
+  // chain's arcs in order (or all reversed), so they still trace the whole smoothed line exactly once.
+  const smoothedChain = list.map(({ refs, closed }) => {
+    let line: XY[] = [];
+    for (const ref of refs) {
+      const pts = arcOf(original, ref);
+      line.push(...(line.length ? pts.slice(1) : pts));
+    }
+    for (let k = 0; k < iterations; k++) line = closed ? chaikinClosed(line) : chaikinOpen(line);
+    return thin(line, MIN_STEP);
   });
+  const build = (fallback: Set<number>) => {
+    const arcs = original.slice();
+    list.forEach(({ refs }, c) => {
+      if (fallback.has(c)) return;
+      const line = smoothedChain[c] as XY[];
+      const endPt = line[line.length - 1] as XY;
+      refs.forEach((ref, n) => {
+        const pts = n === 0 ? line : [endPt, endPt];
+        arcs[ref >= 0 ? ref : ~ref] = ref >= 0 ? pts : [...pts].reverse();
+      });
+    });
+    return arcs;
+  };
+  const chainOf = new Map<number, number>();
+  list.forEach(({ refs }, c) => {
+    for (const ref of refs) chainOf.set(ref >= 0 ? ref : ~ref, c);
+  });
+  const fallback = new Set<number>();
+  for (let round = 0; round < 10; round++) {
+    const bad = crossingArcs(build(fallback), used);
+    if (bad.size === 0) break;
+    for (const i of bad) fallback.add(chainOf.get(i) as number);
+  }
+  s.arcs = build(fallback);
+  return fallback.size;
+}
+
+/** Arcs (by index) with a segment that properly crosses a segment of any arc. */
+function crossingArcs(arcs: XY[][], used: Set<number>): Set<number> {
+  const CELL = 20;
+  const grid = new Map<string, [number, number][]>();
+  for (const i of used) {
+    const arc = arcs[i] as XY[];
+    for (let j = 0; j + 1 < arc.length; j++) {
+      const a = arc[j] as XY;
+      const b = arc[j + 1] as XY;
+      for (let gx = Math.floor(Math.min(a[0], b[0]) / CELL); gx <= Math.floor(Math.max(a[0], b[0]) / CELL); gx++)
+        for (let gy = Math.floor(Math.min(a[1], b[1]) / CELL); gy <= Math.floor(Math.max(a[1], b[1]) / CELL); gy++) {
+          const k = `${gx},${gy}`;
+          const l = grid.get(k) ?? [];
+          l.push([i, j]);
+          grid.set(k, l);
+        }
+    }
+  }
+  const bad = new Set<number>();
+  for (const list of grid.values())
+    for (let x = 0; x < list.length; x++)
+      for (let y = x + 1; y < list.length; y++) {
+        const [i, j] = list[x] as [number, number];
+        const [k, l] = list[y] as [number, number];
+        if (i === k && Math.abs(j - l) < 2) continue;
+        const A = arcs[i] as XY[];
+        const B = arcs[k] as XY[];
+        if (properCross(A[j] as XY, A[j + 1] as XY, B[l] as XY, B[l + 1] as XY)) {
+          bad.add(i);
+          bad.add(k);
+        }
+      }
+  return bad;
 }
 
 /** Proper crossings between segments that are not the same shared segment. Returns a few offending points. */
