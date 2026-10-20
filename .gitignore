@@ -7,4 +7,5 @@ coverage/
 !.env.example
 .DS_Store
 tools/map-build/.cache/
+tools/map-build/preview-before.png
 .claude/worktrees/

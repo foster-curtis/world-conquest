@@ -7,8 +7,11 @@ export interface Layout {
   width: number;
   height: number;
   anchors: Record<string, Pt>;
-  /** Adjacent-but-not-touching pairs. `from` lies on `a`, `to` lies on `b`. */
-  seaLinks: { a: string; b: string; from: Pt; to: Pt }[];
+  /**
+   * Adjacent-but-not-touching pairs. `from` lies on `a`, `to` lies on `b`. When `via` is present the link is a
+   * quadratic curve with `via` as its control point (SVG `M from Q via to`); otherwise a straight line.
+   */
+  seaLinks: { a: string; b: string; from: Pt; to: Pt; via?: Pt }[];
   /** Alaska–Kamchatka: two stubs, each from its territory to the left/right map edge (§5.4). */
   wrapLinks: { a: string; b: string; stubs: { territory: string; from: Pt; to: Pt }[] }[];
 }

@@ -3,12 +3,12 @@
     "IDN": {
       "provinces": {
         "Kalimantan Timur": "indonesia",
-        "Nusa Tenggara Timur": "indonesia",
+        "Nusa Tenggara Timur": "drop",
         "Kalimantan Barat": "indonesia",
         "Papua": "new_guinea",
         "Jawa Timur": "indonesia",
-        "Maluku": "indonesia",
-        "Nusa Tenggara Barat": "indonesia",
+        "Maluku": "drop",
+        "Nusa Tenggara Barat": "drop",
         "Sulawesi Selatan": "indonesia",
         "Jawa Tengah": "indonesia",
         "Jawa Barat": "indonesia",
@@ -18,8 +18,8 @@
         "Sulawesi Tenggara": "indonesia",
         "Papua Barat": "new_guinea",
         "Sulawesi Tengah": "indonesia",
-        "Maluku Utara": "indonesia",
-        "Kepulauan Riau": "indonesia",
+        "Maluku Utara": "drop",
+        "Kepulauan Riau": "drop",
         "Riau": "indonesia",
         "Gorontalo": "indonesia",
         "Sulawesi Utara": "indonesia",
@@ -33,13 +33,19 @@
         "Aceh": "indonesia",
         "Kalimantan Tengah": "indonesia",
         "Kalimantan Selatan": "indonesia",
-        "Bali": "indonesia",
-        "Bangka-Belitung": "indonesia"
+        "Bali": "drop",
+        "Bangka-Belitung": "drop"
       }
     },
     "MYS": {
       "to": "siam",
-      "keep": [95, 0, 120, 8]
+      "keep": [99, 1, 105, 7],
+      "parts": [
+        {
+          "bounds": [109, 0, 120, 6],
+          "to": "indonesia"
+        }
+      ]
     },
     "CHL": {
       "to": "argentina",
@@ -58,8 +64,41 @@
       "keep": [66, 5, 98, 38]
     },
     "CHN": {
-      "to": "china",
-      "keep": [73, 17, 135, 54]
+      "keep": [73, 17, 135, 54],
+      "provinces": {
+        "Xinjiang": "china",
+        "Xizang": "china",
+        "Inner Mongol": "mongolia",
+        "Gansu": "china",
+        "Yunnan": "china",
+        "Heilongjiang": "mongolia",
+        "Jilin": "mongolia",
+        "Liaoning": "mongolia",
+        "Guangxi": "china",
+        "Guangdong": "china",
+        "Hainan": "drop",
+        "Fujian": "china",
+        "Zhejiang": "china",
+        "Shanghai": "china",
+        "Jiangsu": "china",
+        "Shandong": "china",
+        "Hebei": "china",
+        "Tianjin": "china",
+        "Paracel Islands": "drop",
+        "Beijing": "china",
+        "Sichuan": "china",
+        "Chongqing": "china",
+        "Guizhou": "china",
+        "Hunan": "china",
+        "Ningxia": "china",
+        "Shaanxi": "china",
+        "Qinghai": "china",
+        "Shanxi": "china",
+        "Jiangxi": "china",
+        "Henan": "china",
+        "Hubei": "china",
+        "Anhui": "china"
+      }
     },
     "ISR": "middle_east",
     "PSX": "middle_east",
@@ -84,8 +123,8 @@
     },
     "SUR": "venezuela",
     "GUY": "venezuela",
-    "KOR": "china",
-    "PRK": "china",
+    "KOR": "mongolia",
+    "PRK": "mongolia",
     "MAR": "north_africa",
     "SAH": "north_africa",
     "CRI": "central_america",
@@ -139,7 +178,10 @@
         "Sevastopol": "ukraine",
         "Nenets": "ukraine",
         "City of St. Petersburg": "ukraine",
-        "Arkhangel'sk": "ukraine",
+        "Arkhangel'sk": {
+          "to": "ukraine",
+          "keep": [35, 60, 51, 67]
+        },
         "Kalmyk": "ukraine",
         "Lipetsk": "ukraine",
         "Tambov": "ukraine",
@@ -182,24 +224,36 @@
         "Omsk": "siberia",
         "Novosibirsk": "siberia",
         "Altay": "siberia",
-        "Krasnoyarsk": "siberia",
+        "Krasnoyarsk": {
+          "to": "siberia",
+          "keep": [80, 55, 110, 70]
+        },
         "Tomsk": "siberia",
         "Kemerovo": "siberia",
         "Khakass": "siberia",
         "Tuva": "siberia",
         "Buryat": "irkutsk",
         "Irkutsk": "irkutsk",
-        "Sakha (Yakutia)": "yakutsk",
-        "Chukchi Autonomous Okrug": "kamchatka",
+        "Sakha (Yakutia)": {
+          "to": "yakutsk",
+          "keep": [125, 60, 140, 70]
+        },
+        "Chukchi Autonomous Okrug": {
+          "to": "kamchatka",
+          "keep": [
+            [160, 60, 180, 70],
+            [-180, 60, -170, 68]
+          ]
+        },
         "Maga Buryatdan": "kamchatka",
         "Sakhalin": "kamchatka",
         "Kamchatka": "kamchatka",
         "Kaliningrad": "drop",
-        "Chita": "drop",
-        "Amur": "drop",
-        "Yevrey": "drop",
-        "Khabarovsk": "drop",
-        "Primor'ye": "drop",
+        "Chita": "irkutsk",
+        "Amur": "kamchatka",
+        "Yevrey": "kamchatka",
+        "Khabarovsk": "kamchatka",
+        "Primor'ye": "kamchatka",
         "": "drop"
       }
     },
@@ -271,7 +325,15 @@
     "SEN": "north_africa",
     "NGA": "north_africa",
     "BEN": "north_africa",
-    "AGO": "south_africa",
+    "AGO": {
+      "to": "south_africa",
+      "parts": [
+        {
+          "bounds": [11.5, -6, 13.5, -4],
+          "to": "congo"
+        }
+      ]
+    },
     "HRV": "southern_europe",
     "SVN": "southern_europe",
     "QAT": "middle_east",
@@ -288,8 +350,8 @@
     "KWT": "middle_east",
     "SLV": "central_america",
     "GTM": "central_america",
-    "TLS": "indonesia",
-    "BRN": "siam",
+    "TLS": "drop",
+    "BRN": "indonesia",
     "MCO": "western_europe",
     "DZA": "north_africa",
     "MOZ": "south_africa",
@@ -401,8 +463,17 @@
         "Alberta": "alberta",
         "Saskatchewan": "alberta",
         "Yukon": "northwest_territory",
-        "Nunavut": "northwest_territory",
-        "Northwest Territories": "northwest_territory",
+        "Nunavut": {
+          "to": "northwest_territory",
+          "keep": [
+            [-105, 63, -97, 69],
+            [-78, 66, -73, 70]
+          ]
+        },
+        "Northwest Territories": {
+          "to": "northwest_territory",
+          "keep": [-125, 62, -112, 68]
+        },
         "Manitoba": "ontario",
         "Ontario": "ontario",
         "Québec": "quebec",
@@ -422,7 +493,10 @@
       "to": "venezuela",
       "keep": [-74, 0, -59, 13]
     },
-    "PNG": "new_guinea",
+    "PNG": {
+      "to": "new_guinea",
+      "keep": [140, -11, 151, -2]
+    },
     "EGY": "egypt",
     "YEM": {
       "to": "middle_east",
