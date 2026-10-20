@@ -44,7 +44,8 @@ export function readTopo(topo: Topo): TopoShapes {
   return { arcs, terr };
 }
 
-const arcOf = (arcs: XY[][], ref: number): XY[] => (ref >= 0 ? (arcs[ref] as XY[]) : [...(arcs[~ref] as XY[])].reverse());
+const arcOf = (arcs: XY[][], ref: number): XY[] =>
+  ref >= 0 ? (arcs[ref] as XY[]) : [...(arcs[~ref] as XY[])].reverse();
 
 export function ringOf(arcs: XY[][], refs: number[]): Ring {
   const out: Ring = [];
@@ -57,7 +58,8 @@ export function ringOf(arcs: XY[][], refs: number[]): Ring {
 
 export function ringArea(r: Ring): number {
   let a = 0;
-  for (let i = 0; i + 1 < r.length; i++) a += (r[i] as XY)[0] * (r[i + 1] as XY)[1] - (r[i + 1] as XY)[0] * (r[i] as XY)[1];
+  for (let i = 0; i + 1 < r.length; i++)
+    a += (r[i] as XY)[0] * (r[i + 1] as XY)[1] - (r[i + 1] as XY)[0] * (r[i] as XY)[1];
   return a / 2;
 }
 
@@ -157,67 +159,67 @@ export function fillInlets(s: TopoShapes, gap: number): number {
 
   // Cuts the inlets of one ring; returns the rewritten arc refs, or null when nothing was cut.
   const cutRing = (ring: number[], landSign: number): number[] | null => {
-        const pts: XY[] = [];
-        const tag: number[] = []; // tag[k] = position in `ring` of the arc that segment k..k+1 belongs to
-        ring.forEach((ref, n) => {
-          const a = arcOf(s.arcs, ref);
-          for (let k = pts.length ? 1 : 0; k < a.length; k++) {
-            if (pts.length) tag.push(n);
-            pts.push(a[k] as XY);
-          }
-        });
-        const removed = new Set<number>();
-        let i = 0;
-        while (i < pts.length - 1) {
-          const p = pts[i] as XY;
-          let cut = -1;
-          let length = 0;
-          let twice = 0; // running shoelace sum along the ring from i
-          for (let j = i + 1; j < pts.length; j++) {
-            if (!single(ring[tag[j - 1] as number] as number)) break;
-            const q = pts[j] as XY;
-            const o = pts[j - 1] as XY;
-            length += Math.hypot(q[0] - o[0], q[1] - o[1]);
-            twice += o[0] * q[1] - q[0] * o[1];
-            const d = Math.hypot(q[0] - p[0], q[1] - p[1]);
-            if (j < i + 2 || d >= gap || length < 3 * gap) continue;
-            const area = (twice + q[0] * p[1] - p[0] * q[1]) / 2; // loop closed by the segment back to p
-            if (Math.sign(area) !== landSign && (2 * Math.abs(area)) / length < gap) cut = j;
-          }
-          if (cut > 0) {
-            for (let k = i + 1; k < cut; k++) removed.add(k);
-            filled++;
-            i = cut;
-          } else i++;
-        }
-        if (removed.size === 0) return null;
-        // Rewrite each run of consecutive single-owner arcs as one new arc without the removed points.
-        const out: number[] = [];
-        let n = 0;
-        let start = 0; // index in pts where the current arc starts
-        while (n < ring.length) {
-          const ref = ring[n] as number;
-          const len = arcOf(s.arcs, ref).length - 1;
-          if (!single(ref)) {
-            out.push(ref);
-            start += len;
-            n++;
-            continue;
-          }
-          let end = start + len;
-          let m = n + 1;
-          while (m < ring.length && single(ring[m] as number)) {
-            end += arcOf(s.arcs, ring[m] as number).length - 1;
-            m++;
-          }
-          const run: XY[] = [];
-          for (let k = start; k <= end; k++) if (!removed.has(k)) run.push(pts[k] as XY);
-          s.arcs.push(run);
-          out.push(s.arcs.length - 1);
-          start = end;
-          n = m;
-        }
-        return out;
+    const pts: XY[] = [];
+    const tag: number[] = []; // tag[k] = position in `ring` of the arc that segment k..k+1 belongs to
+    ring.forEach((ref, n) => {
+      const a = arcOf(s.arcs, ref);
+      for (let k = pts.length ? 1 : 0; k < a.length; k++) {
+        if (pts.length) tag.push(n);
+        pts.push(a[k] as XY);
+      }
+    });
+    const removed = new Set<number>();
+    let i = 0;
+    while (i < pts.length - 1) {
+      const p = pts[i] as XY;
+      let cut = -1;
+      let length = 0;
+      let twice = 0; // running shoelace sum along the ring from i
+      for (let j = i + 1; j < pts.length; j++) {
+        if (!single(ring[tag[j - 1] as number] as number)) break;
+        const q = pts[j] as XY;
+        const o = pts[j - 1] as XY;
+        length += Math.hypot(q[0] - o[0], q[1] - o[1]);
+        twice += o[0] * q[1] - q[0] * o[1];
+        const d = Math.hypot(q[0] - p[0], q[1] - p[1]);
+        if (j < i + 2 || d >= gap || length < 3 * gap) continue;
+        const area = (twice + q[0] * p[1] - p[0] * q[1]) / 2; // loop closed by the segment back to p
+        if (Math.sign(area) !== landSign && (2 * Math.abs(area)) / length < gap) cut = j;
+      }
+      if (cut > 0) {
+        for (let k = i + 1; k < cut; k++) removed.add(k);
+        filled++;
+        i = cut;
+      } else i++;
+    }
+    if (removed.size === 0) return null;
+    // Rewrite each run of consecutive single-owner arcs as one new arc without the removed points.
+    const out: number[] = [];
+    let n = 0;
+    let start = 0; // index in pts where the current arc starts
+    while (n < ring.length) {
+      const ref = ring[n] as number;
+      const len = arcOf(s.arcs, ref).length - 1;
+      if (!single(ref)) {
+        out.push(ref);
+        start += len;
+        n++;
+        continue;
+      }
+      let end = start + len;
+      let m = n + 1;
+      while (m < ring.length && single(ring[m] as number)) {
+        end += arcOf(s.arcs, ring[m] as number).length - 1;
+        m++;
+      }
+      const run: XY[] = [];
+      for (let k = start; k <= end; k++) if (!removed.has(k)) run.push(pts[k] as XY);
+      s.arcs.push(run);
+      out.push(s.arcs.length - 1);
+      start = end;
+      n = m;
+    }
+    return out;
   };
 
   for (const [t, polys] of Object.entries(s.terr)) {
@@ -299,7 +301,7 @@ function chains(arcs: XY[][], used: Set<number>): { refs: number[]; closed: bool
     }
   };
   // Chains start at real junctions (degree != 2); what is left are loops.
-  for (const [node, leaving] of [...ends.entries()].sort((x, y) => (x[0] < y[0] ? -1 : 1)))
+  for (const [, leaving] of [...ends.entries()].sort((x, y) => (x[0] < y[0] ? -1 : 1)))
     if (leaving.length !== 2) for (const ref of leaving) if (!done.has(ref >= 0 ? ref : ~ref)) out.push(walk(ref));
   for (const i of [...used].sort((x, y) => x - y)) if (!done.has(i)) out.push(walk(i));
   return out;

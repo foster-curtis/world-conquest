@@ -240,10 +240,7 @@
         },
         "Chukchi Autonomous Okrug": {
           "to": "kamchatka",
-          "keep": [
-            [160, 60, 180, 70],
-            [-180, 60, -170, 68]
-          ]
+          "keep": [[160, 60, 180, 70], [-180, 60, -170, 68]]
         },
         "Maga Buryatdan": "kamchatka",
         "Sakhalin": "drop",
@@ -473,10 +470,7 @@
         "Yukon": "northwest_territory",
         "Nunavut": {
           "to": "northwest_territory",
-          "keep": [
-            [-105, 63, -97, 69],
-            [-78, 66, -73, 70]
-          ]
+          "keep": [[-105, 63, -97, 69], [-78, 66, -73, 70]]
         },
         "Northwest Territories": {
           "to": "northwest_territory",

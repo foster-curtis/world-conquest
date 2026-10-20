@@ -94,8 +94,7 @@ const insideAny = (k: Bounds | Bounds[], x: number, y: number) =>
 
 // ---- Assignment -> projected polygon features -------------------------------------------------------------------
 function buildFeatures(a0: FC, a1: FC, assignments: { countries: Record<string, Entry> }, validIds: Set<string>) {
-  const out: { type: 'Feature'; properties: { t: string }; geometry: { type: 'Polygon'; coordinates: GRing[] } }[] =
-    [];
+  const out: { type: 'Feature'; properties: { t: string }; geometry: { type: 'Polygon'; coordinates: GRing[] } }[] = [];
   const problems: string[] = [];
   const used = new Set<string>();
   const checkTo = (to: string, where: string) => {
@@ -218,8 +217,14 @@ const round = (n: number) => Math.round(n * 10) / 10;
 const fmt = (n: number) => String(round(n));
 const dAttr = (polys: Pt[][][]) =>
   polys
-    .flatMap((poly) => poly)
-    .map((ring) => `M${ring.slice(0, -1).map((p) => `${fmt(p[0])} ${fmt(p[1])}`).join('L')}Z`)
+    .flat()
+    .map(
+      (ring) =>
+        `M${ring
+          .slice(0, -1)
+          .map((p) => `${fmt(p[0])} ${fmt(p[1])}`)
+          .join('L')}Z`,
+    )
     .join('');
 
 const dist2 = (a: Pt, b: Pt) => (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2;
@@ -390,8 +395,7 @@ async function main() {
     process.exit(1);
   }
   for (const f of land.features)
-    for (const poly of polygonsOf(f.geometry))
-      for (const ring of poly) for (const p of ring) [p[0], p[1]] = warp(p);
+    for (const poly of polygonsOf(f.geometry)) for (const ring of poly) for (const p of ring) [p[0], p[1]] = warp(p);
 
   // Simplify on shared-arc topology, drop small islands, smooth each arc once.
   const topo = await simplify(land);
@@ -450,8 +454,7 @@ async function main() {
   // Round-trip through the parser so links are computed from exactly what is committed.
   const board = parseBoard(svg);
   const touch = touchingPairs(board);
-  const rings = (t: string) =>
-    board.groups.flatMap((g) => g.paths).find((p) => p.id === t)?.rings as Pt[][];
+  const rings = (t: string) => board.groups.flatMap((g) => g.paths).find((p) => p.id === t)?.rings as Pt[][];
   // An endpoint is the territory's anchor, or the coast point nearest a given [lon, lat] / board point.
   const end = (spec: EndSpec | undefined, t: string, fallback: Pt): Pt => {
     if (spec === undefined) return fallback;
@@ -482,11 +485,19 @@ async function main() {
       linkKeys.add(key);
       const spec = linkCfg.links[key] ?? {};
       const [from0, to0] = closestPair(rings(b.a), rings(b.b));
-      const link: Layout['seaLinks'][number] = { a: b.a, b: b.b, from: end(spec.from, b.a, from0), to: end(spec.to, b.b, to0) };
+      const link: Layout['seaLinks'][number] = {
+        a: b.a,
+        b: b.b,
+        from: end(spec.from, b.a, from0),
+        to: end(spec.to, b.b, to0),
+      };
       if (spec.through) {
         // Quadratic Bézier through `m` at t = 1/2: control = 2m - (from + to) / 2.
         const m = 'lonlat' in spec.through ? toBoard(spec.through.lonlat) : spec.through.board;
-        link.via = [round(2 * m[0] - (link.from[0] + link.to[0]) / 2), round(2 * m[1] - (link.from[1] + link.to[1]) / 2)];
+        link.via = [
+          round(2 * m[0] - (link.from[0] + link.to[0]) / 2),
+          round(2 * m[1] - (link.from[1] + link.to[1]) / 2),
+        ];
       }
       seaLinks.push(link);
     }
@@ -512,14 +523,24 @@ async function main() {
     .sort((x, y) => x[1] - y[1]);
   console.log(`board ${WIDTH}x${HEIGHT} (aspect ${(WIDTH / HEIGHT).toFixed(2)}), ${seaLinks.length} sea links`);
   console.log(`warp: min Jacobian determinant ${fold.minDet.toFixed(3)}`);
-  console.log(`islands dropped: ${JSON.stringify(dropped)}; inlets filled: ${inlets}; arcs left unsmoothed to avoid crossings: ${unsmoothed}`);
-  console.log(`smallest tap radii: ${tap.slice(0, 8).map(([t, d]) => `${t} ${d.toFixed(1)}`).join(', ')}`);
+  console.log(
+    `islands dropped: ${JSON.stringify(dropped)}; inlets filled: ${inlets}; arcs left unsmoothed to avoid crossings: ${unsmoothed}`,
+  );
+  console.log(
+    `smallest tap radii: ${tap
+      .slice(0, 8)
+      .map(([t, d]) => `${t} ${d.toFixed(1)}`)
+      .join(', ')}`,
+  );
 
   const errs = [
     ...runChecks(def, parseBoard(svg), layout),
     ...bad.map((p) => `shapes overlap or self-cross near ${p.join(',')}`),
     ...unknown.map((k) => `sealinks.json: ${k} is not a sea link`),
-    ...seaLinkProblems(seaLinks, board.groups.flatMap((g) => g.paths.flatMap((p) => p.rings))),
+    ...seaLinkProblems(
+      seaLinks,
+      board.groups.flatMap((g) => g.paths.flatMap((p) => p.rings)),
+    ),
     ...tap.filter(([, d]) => d < MIN_TAP_RADIUS).map(([t, d]) => `${t} is too small to tap (radius ${d.toFixed(1)})`),
   ];
   if (errs.length) {

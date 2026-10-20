@@ -7,6 +7,10 @@
 //    latitude (knots [lat, s], smoothstep between knots). Its Jacobian determinant is s > 0, so it never folds.
 //  - mls: moving-least-squares similarity deformation (Schaefer et al. 2006). Control points are grouped; each group
 //    gets one similarity (move / scale / rotate about a pivot) and the field blends them smoothly (weights 1/d^(2*alpha)).
+//    A group with no move/scale/rotate pins its region in place.
+//  - lens: radial magnifier around a point (scale at the centre, fading smoothly to 1 at `radius` board units);
+//    injective for scale < 2.5. Used to enlarge Europe and small islands so they stay tappable.
+// Moves and radii are in projected board units (2000 units = 360 degrees before the warp).
 // All positions in warp.json are [lon, lat]; a step sees them where the previous steps have already moved them.
 
 export type XY = [number, number];
@@ -68,7 +72,10 @@ function mls(step: Extract<Step, { type: 'mls' }>, place: (ll: LonLat) => XY): F
       const dx = (x - about[0]) * k;
       const dy = (y - about[1]) * k;
       P.push([x, y]);
-      Q.push([about[0] + dx * Math.cos(th) - dy * Math.sin(th) + mx, about[1] + dx * Math.sin(th) + dy * Math.cos(th) + my]);
+      Q.push([
+        about[0] + dx * Math.cos(th) - dy * Math.sin(th) + mx,
+        about[1] + dx * Math.sin(th) + dy * Math.cos(th) + my,
+      ]);
     }
   }
   const n = P.length;

@@ -192,13 +192,16 @@ infantry → cavalry → artillery in table order (14 of each), and starting arm
 
 Original art **generated from Natural Earth** (public domain) by a reproducible build script. No hand drawing.
 
-- **Pipeline** (mapshaper): Natural Earth 1:10m admin-0 countries + admin-1 provinces (used where classic territories split a country: Russia, Canada, US, Australia, etc.) → an **assignment table** mapping each country/province to a territory ID, or explicitly to "drop" (Antarctica, Hawaii, minor islands) → dissolve → project → simplify → export.
-- **Projection:** Miller (rectangular), cropped to about 56°S–78°N, Atlantic-centered, with the cut in the Bering Strait, so **Alaska–Kamchatka is the only wrap-around link**.
-- **Simplification level** is a single setting, tuned for the **chunky/simplified** look that fits the clean flat style (§7.1).
+- **Pipeline** (mapshaper + own JS): Natural Earth 1:10m admin-0 countries + admin-1 provinces (used where classic territories split a country: Russia, China, Canada, US, Australia, etc.) → an **assignment table** mapping each country/province to a territory ID, or explicitly to "drop" (Antarctica, Hawaii, minor islands) → project → dissolve → **warp** → simplify → **stylize** → fit → export.
+- **Projection:** Miller, Atlantic-centered, cut in the Bering Strait, so **Alaska–Kamchatka is the only wrap-around link**; cropped at 56°S.
+- **Warp (game-board layout):** a declarative, smooth, continuous displacement field (`warp.json`) applied to every projected vertex before topology and the touching checks. It is composed of global steps (latitude-dependent horizontal squeeze, moving-least-squares control groups, radial lenses), never per-territory transforms, so shared borders stay shared; the build fails if the field folds near land. It shrinks the oceans and high-latitude stretch into a compact board (about 1.6:1 instead of 2.3:1; there is no fixed aspect, the board size follows from the warped land plus margins), enlarges Europe, Australia and small islands, and pulls Greenland toward Iceland. Each continent stays recognizable.
+- **Stylization:** simplification is a single setting, tuned for the **chunky/simplified** look that fits the clean flat style (§7.1), followed by dropping small detached islands, filling narrow one-territory water inlets, and Chaikin smoothing on the shared-arc topology (a border is smoothed once, so both sides stay identical).
+- **Tappability:** the build fails if any territory's label anchor sits less than a set distance inside its shape.
 - **Outputs (committed, so the app build needs no network):**
   - `board.svg`: one `<path id="{territoryId}">` per territory, grouped by continent.
-  - `layout.json`: per-territory label/army-badge anchor (pole of inaccessibility) and sea-link line endpoints.
-- **Small territories:** the fixed-size army badge doubles as the tap target, so tiny shapes need no exaggeration.
+  - `layout.json`: per-territory label/army-badge anchor (pole of inaccessibility) and sea-link endpoints, plus an optional `via` control point that makes a link a quadratic curve.
+- **Sea-link overrides** (`sealinks.json`, an input; outputs are never hand-edited): any link can pin its endpoints (to an anchor, or to the coast point nearest a given lon/lat or board point) and pass through a water point as a curve. Unlisted links join the closest coast points. The build fails if a link crosses land or another link.
+- **Small territories:** the fixed-size army badge doubles as the tap target; the warp's lenses still enlarge small islands (Iceland, Great Britain, Japan, Madagascar, Indonesia) so the shapes themselves read clearly.
 - **Build-time checks against the map definition:** every territory has exactly one path; every land-touching pair is listed as adjacent; every adjacent pair that *doesn't* touch has a sea link in `layout.json`.
 
 ### 5.4 Sea links

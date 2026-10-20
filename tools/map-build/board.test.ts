@@ -42,6 +42,21 @@ describe('board.svg + layout.json vs the classic map', () => {
     expect(w?.stubs.map((s) => s.to[0]).sort((a, b) => a - b)).toEqual([0, layout.width]);
   });
 
+  it('closes the Russian Far East gap: the Mongolia buffer touches its neighbours on land', () => {
+    const touch = touchingPairs(board);
+    for (const p of [
+      'irkutsk|kamchatka',
+      'irkutsk|mongolia',
+      'irkutsk|siberia',
+      'kamchatka|mongolia',
+      'china|mongolia',
+      'mongolia|siberia',
+      'kamchatka|yakutsk',
+    ])
+      expect(touch.has(p), p).toBe(true);
+    expect(touch.has('mongolia|yakutsk')).toBe(false);
+  });
+
   it('has an anchor for all 42 territories', () => {
     expect(Object.keys(layout.anchors).sort()).toEqual([...def.territories].sort());
   });
