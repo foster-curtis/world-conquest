@@ -301,7 +301,7 @@ Reply in 150 words or fewer: what was built, what was deferred, blockers, and th
 
 ## 6. Progress checklist
 
-- [ ] **Pre-flight** passed (record the date and any skipped items under Build decisions)
+- [x] **Pre-flight** passed (record the date and any skipped items under Build decisions)
 
 **M1: Engine + classic map**
 - [ ] `maps/classic.ts` + §5.1 validation tests (first commit)
@@ -351,7 +351,9 @@ _None._ (Format: `- [M#] YYYY-MM-DD: what's blocked, what was tried, what's need
 
 ## 8. Build decisions
 
-_None yet._ (Format: `- [M#] decision: one line, with the reason.`)
+(Format: `- [M#] decision: one line, with the reason.`)
+
+- [pre] Pre-flight passed 2026-10-20, nothing skipped. Deno isn't installed locally, so Deno checks use `npx --yes deno` (2.9.6).
 
 ---
 
