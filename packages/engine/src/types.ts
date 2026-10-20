@@ -179,7 +179,9 @@ export type Command =
   // Lobby
   /** displayName is filled by the edge function from `profiles`, not trusted from the client.
    *  color omitted → first free; requested but taken → COLOR_TAKEN. */
-  | { type: 'JoinGame'; displayName: string; color?: Color }
+  /** userId is likewise filled by the edge function from auth (null/omitted in pass-and-play). The actor is
+   *  ignored, since a joiner has no seat yet. */
+  | { type: 'JoinGame'; displayName: string; color?: Color; userId?: string | null }
   /** Lobby: leave the game (host leaving passes host on, or cancels if empty).
    *  After start: resign = immediate kick (SeatKicked reason 'resigned'). */
   | { type: 'LeaveGame' }
@@ -220,7 +222,14 @@ export type GameEvent =
   | { type: 'HostChanged'; seat: SeatId } // host left; earliest-joined remaining seat
   | { type: 'GameCanceled'; reason: CancelReason }
   | { type: 'SettingsUpdated'; settings: GameSettings }
-  | { type: 'GameStarted'; turnOrder: SeatId[]; neutralSeat: SeatId | null; deck: CardId[] }
+  /** draftDeadlineAt: the first pick's deadline when territoryAssignment = 'draft', else null. */
+  | {
+      type: 'GameStarted';
+      turnOrder: SeatId[];
+      neutralSeat: SeatId | null;
+      deck: CardId[];
+      draftDeadlineAt: ISODate | null;
+    }
   // Territory assignment
   | { type: 'TerritoriesDealt'; assignments: Record<TerritoryId, SeatId> }
   | { type: 'DraftPicked'; seat: SeatId; territory: TerritoryId; auto: boolean; nextDeadlineAt: ISODate | null }
@@ -241,7 +250,10 @@ export type GameEvent =
       seat: SeatId;
       reinforcements: { territories: number; continents: Record<ContinentId, number>; total: number };
       deadlineAt: ISODate | null;
+      startedAt: ISODate; // also the turn's first lastActionAt
     }
+  /** Turn-action events carry `at` (decide's ctx.now) so apply can track Phase.turn.lastActionAt.
+   *  CardsTraded.armies is the set value added to the pool; the +2 bonus goes straight onto bonusTerritory. */
   | {
       type: 'CardsTraded';
       seat: SeatId;
@@ -249,8 +261,9 @@ export type GameEvent =
       armies: number;
       bonusTerritory: TerritoryId | null;
       forced: boolean;
+      at: ISODate;
     }
-  | { type: 'ArmiesPlaced'; seat: SeatId; placements: Record<TerritoryId, number> }
+  | { type: 'ArmiesPlaced'; seat: SeatId; placements: Record<TerritoryId, number>; at: ISODate }
   | {
       type: 'AttackRolled';
       from: TerritoryId;
@@ -259,11 +272,12 @@ export type GameEvent =
       defenderRolls: number[];
       attackerLosses: number;
       defenderLosses: number;
+      at: ISODate;
     }
   | { type: 'TerritoryConquered'; from: TerritoryId; to: TerritoryId; newOwner: SeatId; previousOwner: SeatId }
-  | { type: 'ArmiesOccupied'; from: TerritoryId; to: TerritoryId; armies: number }
-  | { type: 'AttackEnded'; seat: SeatId }
-  | { type: 'Fortified'; from: TerritoryId; to: TerritoryId; armies: number }
+  | { type: 'ArmiesOccupied'; from: TerritoryId; to: TerritoryId; armies: number; at: ISODate }
+  | { type: 'AttackEnded'; seat: SeatId; at: ISODate }
+  | { type: 'Fortified'; from: TerritoryId; to: TerritoryId; armies: number; at: ISODate }
   | { type: 'CardDrawn'; seat: SeatId; cardId: CardId } // redacted for others
   | { type: 'DeckReshuffled'; deck: CardId[] } // server-only payload
   | { type: 'TurnEnded'; seat: SeatId }
@@ -302,7 +316,8 @@ export type RejectionCode =
   | 'SKIP_NOT_ALLOWED'
   | 'INVALID_SETTINGS'
   | 'COLOR_TAKEN'
-  | 'STALE_VERSION';
+  | 'STALE_VERSION'
+  | 'NOT_A_SEAT'; // the actor (or the target seat) is not a seat in this game
 
 export interface Rejection {
   code: RejectionCode;
