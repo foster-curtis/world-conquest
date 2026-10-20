@@ -46,7 +46,7 @@ No bots. No mixing modes (no two local players inside an online game).
 
 ### Players: names & colors
 
-- **Display name** is per account: a `profiles` row (`user_id`, `display_name`), set on first sign-in and editable anytime. The edge function copies it into the seat on `JoinGame` (a snapshot; later profile edits don't rename seats in existing games).
+- **Display name** is per account: a `profiles` row (`user_id`, `display_name`), set on first sign-in and editable anytime. The edge function copies it into the seat on `JoinGame` (a snapshot; later profile edits don't rename seats in existing games), together with the caller's `userId` from auth; neither is trusted from the client.
 - **Colors:** on join you get the **first free color** (or the one requested, if free). Anyone can switch to any free color (`ChangeColor`) until the game starts. `gray` is reserved for the neutral seat and can't be picked; the other 6 colors cover a full 6-player game.
 
 ### Host leaving, canceling, cleanup
@@ -183,69 +183,10 @@ v1 ships one map, `classic`. The system is **multi-map ready**: engine code neve
 
 ### 5.2 Classic map
 
-42 territories, 6 continents, 83 borders (the standard layout).
-
-| Continent (`id`)          | Bonus | Territories (`id`)                                                                                                       |
-| ------------------------- | ----- | ------------------------------------------------------------------------------------------------------------------------ |
-| North America (`north_america`) | 5 | alaska, northwest_territory, greenland, alberta, ontario, quebec, western_us, eastern_us, central_america |
-| South America (`south_america`) | 2 | venezuela, peru, brazil, argentina |
-| Europe (`europe`)         | 5     | iceland, great_britain, scandinavia, northern_europe, western_europe, southern_europe, ukraine |
-| Africa (`africa`)         | 3     | north_africa, egypt, east_africa, congo, south_africa, madagascar |
-| Asia (`asia`)             | 7     | ural, siberia, yakutsk, kamchatka, irkutsk, mongolia, japan, afghanistan, china, middle_east, india, siam |
-| Australia (`australia`)   | 2     | indonesia, new_guinea, western_australia, eastern_australia |
-
-**Starting armies** (per seat, keyed by number of human players; in 2-player the neutral seat also gets 40):
-
-| Humans | 2   | 3   | 4   | 5   | 6   |
-| ------ | --- | --- | --- | --- | --- |
-| Armies | 40  | 35  | 30  | 25  | 20  |
-
-**Card symbols:** assigned by cycling infantry → cavalry → artillery through the territories in table order above (14 of each).
-
-**Adjacency** (each border listed once; ↻ = wraps around the map edge):
-
-```
-alaska:              northwest_territory, alberta, kamchatka ↻
-northwest_territory: alberta, ontario, greenland
-greenland:           ontario, quebec, iceland
-alberta:             ontario, western_us
-ontario:             quebec, western_us, eastern_us
-quebec:              eastern_us
-western_us:          eastern_us, central_america
-eastern_us:          central_america
-central_america:     venezuela
-venezuela:           peru, brazil
-peru:                brazil, argentina
-brazil:              argentina, north_africa
-iceland:             great_britain, scandinavia
-great_britain:       scandinavia, northern_europe, western_europe
-scandinavia:         northern_europe, ukraine
-northern_europe:     western_europe, southern_europe, ukraine
-western_europe:      southern_europe, north_africa
-southern_europe:     ukraine, north_africa, egypt, middle_east
-ukraine:             ural, afghanistan, middle_east
-north_africa:        egypt, east_africa, congo
-egypt:               east_africa, middle_east
-east_africa:         congo, south_africa, madagascar, middle_east
-congo:               south_africa
-south_africa:        madagascar
-ural:                siberia, china, afghanistan
-siberia:             yakutsk, irkutsk, mongolia, china
-yakutsk:             kamchatka, irkutsk
-kamchatka:           irkutsk, mongolia, japan
-irkutsk:             mongolia
-mongolia:            japan, china
-afghanistan:         china, india, middle_east
-china:               india, siam
-middle_east:         india
-india:               siam
-siam:                indonesia
-indonesia:           new_guinea, western_australia
-new_guinea:          western_australia, eastern_australia
-western_australia:   eastern_australia
-```
-
-Once the engine package exists, its `maps/classic` data file becomes the source of truth and this section shrinks to a pointer.
+The source of truth is [`packages/engine/src/maps/classic.ts`](packages/engine/src/maps/classic.ts): 42 territories,
+6 continents, 83 borders (the standard layout; `alaska`–`kamchatka` wraps around the map edge), card symbols cycling
+infantry → cavalry → artillery in table order (14 of each), and starting armies 40/35/30/25/20 for 2–6 humans (in
+2-player games the neutral seat also gets 40). `maps/maps.test.ts` pins these numbers and the continent bonuses.
 
 ### 5.3 Map art (web app)
 
@@ -302,6 +243,11 @@ redactEvent(event, viewer) → Event | null
 
 - Dice results, deck order and auto-play outcomes are written into events → replays are deterministic.
 - Auto-play (timeouts/skips) expands into ordinary events inside `decide`.
+- Times that state depends on are written into events too, since `apply` never reads a clock: deadlines
+  (`GameStarted.draftDeadlineAt`, `DraftPicked.nextDeadlineAt`, `SetupStarted.deadlineAt`, `TurnStarted.deadlineAt`),
+  `TurnStarted.startedAt`, and `at` on every turn action (the source of `lastActionAt`).
+- Local (pass-and-play) games still get a setup `deadlineAt` (from `pace`); the local UI ignores it. Their turns have
+  no deadline and `SkipTurn` is rejected.
 
 ### Data (Postgres)
 

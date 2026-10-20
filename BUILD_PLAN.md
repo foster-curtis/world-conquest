@@ -304,10 +304,10 @@ Reply in 150 words or fewer: what was built, what was deferred, blockers, and th
 - [x] **Pre-flight** passed (record the date and any skipped items under Build decisions)
 
 **M1: Engine + classic map**
-- [ ] `maps/classic.ts` + §5.1 validation tests (first commit)
-- [ ] Rule modules (§11 item 2 order); `decide`/`apply` from lobby through win conditions and resign/kick
-- [ ] Views + leak test; replay determinism; full-game simulation; every event type emitted
-- [ ] Deno smoke extended; SPEC §5.2 shrunk to a pointer
+- [x] `maps/classic.ts` + §5.1 validation tests (first commit)
+- [x] Rule modules (§11 item 2 order); `decide`/`apply` from lobby through win conditions and resign/kick
+- [x] Views + leak test; replay determinism; full-game simulation; every event type emitted
+- [x] Deno smoke extended; SPEC §5.2 shrunk to a pointer
 - [ ] Merged to `main` (event shapes frozen)
 
 **M2: Map art**
@@ -354,6 +354,16 @@ _None._ (Format: `- [M#] YYYY-MM-DD: what's blocked, what was tried, what's need
 (Format: `- [M#] decision: one line, with the reason.`)
 
 - [pre] Pre-flight passed 2026-10-20, nothing skipped. Deno isn't installed locally, so Deno checks use `npx --yes deno` (2.9.6).
+- [M1] Contract (pre-freeze): added `GameStarted.draftDeadlineAt`, `TurnStarted.startedAt`, and `at` on CardsTraded/ArmiesPlaced/AttackRolled/ArmiesOccupied/AttackEnded/Fortified, because `apply` has no clock but state holds the draft deadline, turn start and `lastActionAt`.
+- [M1] Contract: `JoinGame.userId?` (filled by the edge function like `displayName`); the JoinGame actor is ignored because a joiner has no seat yet. New rejection code `NOT_A_SEAT`.
+- [M1] Kept `Phase.setup.deadlineAt` / `SetupStarted.deadlineAt` non-nullable: local games get one from `pace` and the UI ignores it. Local turns have `deadlineAt: null` and `SkipTurn` is rejected.
+- [M1] Card ids = territory ids, wilds `wild:1`/`wild:2`. Seat ids = lowest free 0–5; `seats` stays in join order (host passes to `seats[0]`); neutral takes the lowest free id.
+- [M1] Deal/draft puts 1 army per territory; `armiesToPlace` = startingArmies − territories owned. Kicked seats auto-pick in the draft like neutral and get an auto SetupSubmitted.
+- [M1] `CardsTraded.armies` = set value; +2 lands on the first traded card's territory you own. `forced` = made by auto-play.
+- [M1] Blitz rolls max dice every round. A game-ending conquest auto-occupies the minimum before `GameEnded`. Fortify from the attack step emits `AttackEnded` first.
+- [M1] Skipped/timed-out turns draw no card (same as resign). Order: [ArmiesOccupied] [CardsTraded] [ArmiesPlaced] TurnSkipped TurnEnded [SeatKicked] then GameEnded or TurnStarted.
+- [M1] `redactEvent` never returns null: deck → `[]`; others' CardDrawn/SeatEliminated card ids → `''` (`HIDDEN_CARD_ID`); others' SetupSubmitted → `{}`/null.
+- [M1] Test helpers (seeded rng, harness, random-legal-move sim) live in `packages/engine/src/testing/`, not exported.
 
 ---
 

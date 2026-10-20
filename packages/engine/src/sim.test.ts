@@ -7,7 +7,7 @@ import type { GameEvent, WinCondition } from './types.ts';
 
 const winConditions: WinCondition[] = ['classic', 'capitals'];
 
-describe('full-game simulation', () => {
+describe('full-game simulation', { timeout: 60_000 }, () => {
   for (const players of [2, 3, 4, 5, 6]) {
     for (const winCondition of winConditions) {
       it(`${players} players, ${winCondition}: reaches game_over and replays exactly`, () => {

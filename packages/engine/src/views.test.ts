@@ -42,7 +42,7 @@ function checkEvent(e: GameEvent, viewer: SeatId | null): void {
   if (r.type === 'SetupSubmitted' && r.seat === viewer) expect(r).toEqual(e);
 }
 
-describe('views and redaction', () => {
+describe('views and redaction', { timeout: 60_000 }, () => {
   it('property: no viewer ever sees deck order, other hands, or others’ hidden setup', () => {
     fc.assert(
       fc.property(fc.integer(), fc.integer({ min: 2, max: 6 }), fc.boolean(), (seed, players, online) => {

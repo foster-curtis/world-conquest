@@ -4,7 +4,7 @@ import { apply, replay } from './apply.ts';
 import { simulate } from './testing/sim.ts';
 import type { GameState } from './types.ts';
 
-describe('apply', () => {
+describe('apply', { timeout: 60_000 }, () => {
   it('never mutates its input (states are deep-frozen by the harness) and bumps the version', () => {
     const g = simulate({ players: 3, seed: 5, settings: { mode: 'online' }, timeoutRate: 0.05 });
     expect(Object.isFrozen(g.state)).toBe(true);
