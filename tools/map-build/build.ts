@@ -12,7 +12,7 @@ import { Resvg } from '@resvg/resvg-js';
 import mapshaper from 'mapshaper';
 import { type Layout, type Pt, parseBoard, runChecks, touchingPairs } from './checks.ts';
 import { loadClassic } from './mapdef.ts';
-import { crossings, dropIslands, properCross, type Ring, readTopo, ringOf, smoothArcs } from './style.ts';
+import { crossings, dropIslands, fillInlets, properCross, type Ring, readTopo, ringOf, smoothArcs } from './style.ts';
 import { checkFold, compileWarp, type LonLat, type WarpConfig } from './warp.ts';
 
 // ---- Settings (the single tuning surface, §5.3) -----------------------------------------------------------------
@@ -26,6 +26,7 @@ const SNAP_INTERVAL = 0.05; // projected units; welds admin-0 / admin-1 borders 
 const SIMPLIFY_INTERVAL = 4; // board units (weighted Visvalingam): the "chunky" level
 const MIN_ISLAND_AREA = 220; // board units^2; smaller detached parts are removed (never a territory's largest part)
 const SMOOTH_ITERATIONS = 3; // Chaikin passes per arc
+const INLET_GAP = 5; // board units; one-territory water inlets narrower than this (mouth and mean width) are filled
 const MIN_TAP_RADIUS = 13; // board units; every territory's anchor must sit this far inside its shape
 const FOLD_MIN_DET = 0.05; // the warp's Jacobian determinant must stay above this everywhere near land
 
@@ -395,6 +396,7 @@ async function main() {
   // Simplify on shared-arc topology, drop small islands, smooth each arc once.
   const topo = await simplify(land);
   const dropped = dropIslands(topo, MIN_ISLAND_AREA);
+  const inlets = fillInlets(topo, INLET_GAP);
   const unsmoothed = smoothArcs(topo, SMOOTH_ITERATIONS);
 
   // Fit: translate so the land starts at (PAD, MARGIN); the board size follows from the land's extent.
@@ -510,7 +512,7 @@ async function main() {
     .sort((x, y) => x[1] - y[1]);
   console.log(`board ${WIDTH}x${HEIGHT} (aspect ${(WIDTH / HEIGHT).toFixed(2)}), ${seaLinks.length} sea links`);
   console.log(`warp: min Jacobian determinant ${fold.minDet.toFixed(3)}`);
-  console.log(`islands dropped: ${JSON.stringify(dropped)}; arcs left unsmoothed to avoid crossings: ${unsmoothed}`);
+  console.log(`islands dropped: ${JSON.stringify(dropped)}; inlets filled: ${inlets}; arcs left unsmoothed to avoid crossings: ${unsmoothed}`);
   console.log(`smallest tap radii: ${tap.slice(0, 8).map(([t, d]) => `${t} ${d.toFixed(1)}`).join(', ')}`);
 
   const errs = [

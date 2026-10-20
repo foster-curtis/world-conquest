@@ -246,7 +246,7 @@
           ]
         },
         "Maga Buryatdan": "kamchatka",
-        "Sakhalin": "kamchatka",
+        "Sakhalin": "drop",
         "Kamchatka": "kamchatka",
         "Kaliningrad": "drop",
         "Chita": "irkutsk",
@@ -277,7 +277,15 @@
     "ALB": "southern_europe",
     "AZE": "ukraine",
     "KOS": "southern_europe",
-    "TUR": "middle_east",
+    "TUR": {
+      "to": "middle_east",
+      "parts": [
+        {
+          "bounds": [25, 40, 30, 42.5],
+          "to": "drop"
+        }
+      ]
+    },
     "ESP": {
       "to": "western_europe",
       "keep": [-11, 36.5, 5, 44.5]

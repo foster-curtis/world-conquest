@@ -132,6 +132,133 @@ function thin(pts: XY[], d: number): XY[] {
 }
 
 /**
+ * Closes narrow water inlets on coasts that belong to a single territory (river estuaries, fjords, slivers between
+ * two parts of one territory): where two points of a ring come within `gap` of each other, the coast between them
+ * bends away into the land (water inside the loop), and that water is thin (mean width under `gap`), the coast is
+ * replaced by the short segment across the mouth. Land lobes (peninsulas) are never cut, and borders shared with
+ * another territory are never touched, so adjacency is unchanged. Returns the number of inlets filled.
+ */
+export function fillInlets(s: TopoShapes, gap: number): number {
+  const owners = new Map<number, Set<string>>();
+  for (const [t, polys] of Object.entries(s.terr))
+    for (const poly of polys)
+      for (const ring of poly)
+        for (const ref of ring) {
+          const i = ref >= 0 ? ref : ~ref;
+          const o = owners.get(i) ?? new Set<string>();
+          o.add(t);
+          owners.set(i, o);
+        }
+  const single = (ref: number) => owners.get(ref >= 0 ? ref : ~ref)?.size === 1;
+  const key = (p: XY) => `${p[0]},${p[1]}`;
+  const startKey = (ref: number) => key(arcOf(s.arcs, ref)[0] as XY);
+  const endKey = (ref: number) => startKey(~ref);
+  let filled = 0;
+
+  // Cuts the inlets of one ring; returns the rewritten arc refs, or null when nothing was cut.
+  const cutRing = (ring: number[], landSign: number): number[] | null => {
+        const pts: XY[] = [];
+        const tag: number[] = []; // tag[k] = position in `ring` of the arc that segment k..k+1 belongs to
+        ring.forEach((ref, n) => {
+          const a = arcOf(s.arcs, ref);
+          for (let k = pts.length ? 1 : 0; k < a.length; k++) {
+            if (pts.length) tag.push(n);
+            pts.push(a[k] as XY);
+          }
+        });
+        const removed = new Set<number>();
+        let i = 0;
+        while (i < pts.length - 1) {
+          const p = pts[i] as XY;
+          let cut = -1;
+          let length = 0;
+          let twice = 0; // running shoelace sum along the ring from i
+          for (let j = i + 1; j < pts.length; j++) {
+            if (!single(ring[tag[j - 1] as number] as number)) break;
+            const q = pts[j] as XY;
+            const o = pts[j - 1] as XY;
+            length += Math.hypot(q[0] - o[0], q[1] - o[1]);
+            twice += o[0] * q[1] - q[0] * o[1];
+            const d = Math.hypot(q[0] - p[0], q[1] - p[1]);
+            if (j < i + 2 || d >= gap || length < 3 * gap) continue;
+            const area = (twice + q[0] * p[1] - p[0] * q[1]) / 2; // loop closed by the segment back to p
+            if (Math.sign(area) !== landSign && (2 * Math.abs(area)) / length < gap) cut = j;
+          }
+          if (cut > 0) {
+            for (let k = i + 1; k < cut; k++) removed.add(k);
+            filled++;
+            i = cut;
+          } else i++;
+        }
+        if (removed.size === 0) return null;
+        // Rewrite each run of consecutive single-owner arcs as one new arc without the removed points.
+        const out: number[] = [];
+        let n = 0;
+        let start = 0; // index in pts where the current arc starts
+        while (n < ring.length) {
+          const ref = ring[n] as number;
+          const len = arcOf(s.arcs, ref).length - 1;
+          if (!single(ref)) {
+            out.push(ref);
+            start += len;
+            n++;
+            continue;
+          }
+          let end = start + len;
+          let m = n + 1;
+          while (m < ring.length && single(ring[m] as number)) {
+            end += arcOf(s.arcs, ring[m] as number).length - 1;
+            m++;
+          }
+          const run: XY[] = [];
+          for (let k = start; k <= end; k++) if (!removed.has(k)) run.push(pts[k] as XY);
+          s.arcs.push(run);
+          out.push(s.arcs.length - 1);
+          start = end;
+          n = m;
+        }
+        return out;
+  };
+
+  for (const [t, polys] of Object.entries(s.terr)) {
+    // A loop that encloses land has the sign of the outer ring's area, for every ring of the polygon.
+    const sign = (poly: number[][]) => Math.sign(ringArea(ringOf(s.arcs, poly[0] as number[])));
+    // Two parts of one territory that touch at a single node (a sliver of water between them running up to that
+    // node) are first spliced into one pinched ring at that node, so the sliver becomes an inlet of that ring.
+    let merged = true;
+    while (merged) {
+      merged = false;
+      for (let a = 0; a < polys.length && !merged; a++)
+        for (let b = a + 1; b < polys.length && !merged; b++) {
+          const A = (polys[a] as number[][])[0] as number[];
+          const B = (polys[b] as number[][])[0] as number[];
+          if (sign(polys[a] as number[][]) !== sign(polys[b] as number[][])) continue;
+          for (let x = 0; x < A.length && !merged; x++) {
+            const node = endKey(A[x] as number);
+            const y = B.findIndex((ref) => startKey(ref) === node);
+            if (y < 0) continue;
+            const ring = [...A.slice(0, x + 1), ...B.slice(y), ...B.slice(0, y), ...A.slice(x + 1)];
+            const cut = cutRing(ring, sign(polys[a] as number[][]));
+            if (!cut) continue;
+            polys[a] = [cut, ...(polys[a] as number[][]).slice(1), ...(polys[b] as number[][]).slice(1)];
+            polys.splice(b, 1);
+            merged = true;
+          }
+        }
+    }
+    for (const poly of polys) {
+      const landSign = sign(poly);
+      poly.forEach((ring, ri) => {
+        const cut = cutRing(ring, landSign);
+        if (cut) poly[ri] = cut;
+      });
+    }
+    s.terr[t] = polys;
+  }
+  return filled;
+}
+
+/**
  * Arcs joined end to end through nodes where only two arc ends meet (no real junction) form one chain, so smoothing
  * never leaves a corner at such a node. Returns chains as oriented arc refs, and whether each chain is a closed loop.
  */

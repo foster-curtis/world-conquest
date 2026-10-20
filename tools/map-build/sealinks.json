@@ -9,6 +9,10 @@
       "from": { "lonlat": [-44, 60] },
       "to": { "lonlat": [-61, 57.5] }
     },
+    "north_africa|southern_europe": {
+      "from": { "lonlat": [11, 37] },
+      "to": { "lonlat": [16, 38.3] }
+    },
     "indonesia|western_australia": {
       "from": { "lonlat": [114, -8.5] },
       "to": { "lonlat": [122, -17] }
