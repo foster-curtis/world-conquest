@@ -20,7 +20,7 @@ Home screen offers two **completely separate** modes:
 
 No bots. No mixing modes (no two local players inside an online game).
 
-**Pass-and-play setup:** a local screen where players enter names and pick colors (same color picker and rules as the online lobby; `gray` reserved for neutral). No join code, no sign-in.
+**Pass-and-play setup:** a local screen where players enter names, pick colors (same color picker and rules as the online lobby; `gray` reserved for neutral), and choose the win condition (`classic` or `capitals`, §2 Settings). No join code, no sign-in.
 
 **Pass-and-play hidden info:** show a "Pass the device to \_\_\_" screen before every turn and before each player's setup turn, so cards and hidden setup placements stay private.
 
@@ -345,7 +345,7 @@ profiles    (user_id PRIMARY KEY → auth.users, display_name, updated_at)  -- u
   - Clicking the link signs you in.
   - The sign-in screen also has an "or enter the code" field (`verifyOtp({ email, token, type: 'email' })`). This covers phones where the link opens in the mail app's built-in browser; PKCE links only work in the browser that requested them.
   - Both the **Magic Link** and **Confirm signup** templates (first sign-in creates the user) include `{{ .ConfirmationURL }}` and `{{ .Token }}`. Templates live in the repo (`supabase/templates/*.html`), are referenced from `config.toml` for local dev, and are copied to the dashboard for prod. Keep them short and plain (no marketing copy, few links) for deliverability.
-- **Production URL:** `https://world-conquest.fostercurtis.dev`. Which host serves it is decided in #7.
+- **Production URL:** `https://world-conquest.fostercurtis.dev`, served by Vercel (§9.1).
 - **Email delivery:** **Resend** as Supabase Auth's custom SMTP server, configured in the dashboard (Auth → SMTP: host `smtp.resend.com`, user `resend`, password = Resend API key), not in code.
   - Sending domain: **`auth.fostercurtis.dev`**, verified in Resend (SPF/DKIM DNS records, plus DMARC).
   - From: `World Conquest <no-reply@auth.fostercurtis.dev>`.
@@ -431,7 +431,7 @@ The board is a single focus area. While it has focus, it takes Tab/Shift+Tab; **
 
 - **Desktop:** the board in the middle, a right sidebar with players and the feed, and the step bar along the bottom.
 - **Phone (portrait first; landscape also works):** the board fills the screen with pinch-zoom/pan and auto-pans to the action. The HUD is a collapsible bottom panel, with a strip of players across the top.
-- **Installable app (PWA):** a web app manifest and icons so the game can be added to the home screen. Offline caching is decided with hosting (#7).
+- **Installable app (PWA):** a web app manifest and icons so the game can be added to the home screen. Offline caching and updates: §9.5.
 
 ### 7.8 Connection and reconnect
 
