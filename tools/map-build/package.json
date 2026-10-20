@@ -1,0 +1,9 @@
+{
+  "name": "@wc/map-build",
+  "private": true,
+  "type": "module",
+  "description": "Natural Earth → apps/web/src/board/{board.svg,layout.json} via mapshaper. Run manually; outputs are committed.",
+  "devDependencies": {
+    "mapshaper": "^0.7.91"
+  }
+}

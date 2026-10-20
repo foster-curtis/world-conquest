@@ -1,0 +1,18 @@
+{
+  "name": "@wc/engine",
+  "private": true,
+  "type": "module",
+  "description": "Pure TypeScript game engine. Shipped as source; must load unmodified in Node/Vite and Deno.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc"
+  },
+  "devDependencies": {
+    "fast-check": "^4.10.2",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
+  }
+}

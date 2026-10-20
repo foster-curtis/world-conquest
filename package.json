@@ -1,0 +1,24 @@
+{
+  "name": "world-conquest",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.34.5",
+  "scripts": {
+    "check": "biome check .",
+    "fix": "biome check --write .",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "test": "pnpm -r --if-present test",
+    "dev": "pnpm --filter @wc/web dev"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.15",
+    "supabase": "^2.121.0",
+    "typescript": "^7.0.2"
+  },
+  "pnpm": {
+    "ignoredBuiltDependencies": [
+      "better-sqlite3",
+      "msgpackr-extract"
+    ]
+  }
+}

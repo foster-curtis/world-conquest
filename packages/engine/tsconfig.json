@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // No DOM, no Node: the engine must run unmodified in browsers and Deno.
+    "lib": ["ES2022"],
+    "types": []
+  },
+  "include": ["src"]
+}
