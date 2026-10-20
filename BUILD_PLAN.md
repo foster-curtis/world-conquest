@@ -311,8 +311,8 @@ Reply in 150 words or fewer: what was built, what was deferred, blockers, and th
 - [ ] Merged to `main` (event shapes frozen)
 
 **M2: Map art**
-- [ ] Pipeline + `assignments.json`; `board.svg` + `layout.json`; `preview.png`
-- [ ] §5.3 cross-checks against `maps/classic.ts` pass; build is reproducible
+- [x] Pipeline + `assignments.json`; `board.svg` + `layout.json`; `preview.png`
+- [x] §5.3 cross-checks against `maps/classic.ts` pass; build is reproducible
 - [ ] Merged to `main`
 - [ ] **User approved preview PNG**
 
@@ -364,6 +364,9 @@ _None._ (Format: `- [M#] YYYY-MM-DD: what's blocked, what was tried, what's need
 - [M1] Skipped/timed-out turns draw no card (same as resign). Order: [ArmiesOccupied] [CardsTraded] [ArmiesPlaced] TurnSkipped TurnEnded [SeatKicked] then GameEnded or TurnStarted.
 - [M1] `redactEvent` never returns null: deck → `[]`; others' CardDrawn/SeatEliminated card ids → `''` (`HIDDEN_CARD_ID`); others' SetupSubmitted → `{}`/null.
 - [M1] Test helpers (seeded rng, harness, random-legal-move sim) live in `packages/engine/src/testing/`, not exported.
+- [M2] `layout.json` schema: `{width, height, anchors{id:[x,y]}, seaLinks[{a,b,from,to}], wrapLinks[{a,b,stubs[{territory,from,to}]}]}`; board is 2120x932 with a 60-unit empty margin each side so the Alaska/Kamchatka stubs (from territory to x=0 / x=width) are visible. Sea-link endpoints are the closest vertex pair.
+- [M2] Pipeline: own JS does assignment/projection (Miller, central meridian 11E so the cut is at 169W); mapshaper does dissolve/clip/simplify (4% weighted Visvalingam)/`-points inner` anchors; `assignments.json` maps ADM0_A3 -> id|drop|{provinces,keep,parts}. Touching = shared boundary segment in `board.svg`. Preview labels exist only in `preview.png`.
+- [M2] Dropped Russian Far East provinces touching China (Zabaykalsky, Amur, Jewish AO, Khabarovsk, Primorsky) since adjacency forbids irkutsk/kamchatka-china contact; leaves a visible gap. Kazakhstan -> ural; Caspian gives an afghanistan-ukraine sea link.
 
 ---
 

@@ -1,0 +1,506 @@
+{
+ "width": 2120,
+ "height": 932,
+ "anchors": {
+  "alaska": [
+   147.3,
+   155.9
+  ],
+  "northwest_territory": [
+   334.4,
+   163.2
+  ],
+  "greenland": [
+   768.6,
+   69.3
+  ],
+  "alberta": [
+   353.5,
+   241.8
+  ],
+  "ontario": [
+   494.8,
+   262.6
+  ],
+  "quebec": [
+   608.7,
+   248.9
+  ],
+  "western_us": [
+   387.9,
+   336.7
+  ],
+  "eastern_us": [
+   512.3,
+   364.3
+  ],
+  "central_america": [
+   435.5,
+   460.7
+  ],
+  "venezuela": [
+   620.6,
+   549.9
+  ],
+  "peru": [
+   633.8,
+   673.6
+  ],
+  "brazil": [
+   715.4,
+   645.3
+  ],
+  "argentina": [
+   635.6,
+   780.6
+  ],
+  "iceland": [
+   896.1,
+   160.2
+  ],
+  "great_britain": [
+   989.7,
+   259.5
+  ],
+  "scandinavia": [
+   1097.6,
+   155.1
+  ],
+  "northern_europe": [
+   1092.8,
+   271.1
+  ],
+  "western_europe": [
+   1013,
+   306.7
+  ],
+  "southern_europe": [
+   1116.4,
+   314.4
+  ],
+  "ukraine": [
+   1232.3,
+   220
+  ],
+  "north_africa": [
+   1018.2,
+   465
+  ],
+  "egypt": [
+   1163.9,
+   433
+  ],
+  "east_africa": [
+   1200.3,
+   535.6
+  ],
+  "congo": [
+   1112,
+   583.4
+  ],
+  "south_africa": [
+   1133.7,
+   698.3
+  ],
+  "madagascar": [
+   1258.4,
+   690.1
+  ],
+  "ural": [
+   1345.1,
+   248.7
+  ],
+  "siberia": [
+   1529.2,
+   141.5
+  ],
+  "yakutsk": [
+   1713.7,
+   158.7
+  ],
+  "kamchatka": [
+   1932.7,
+   154.3
+  ],
+  "irkutsk": [
+   1597.5,
+   235.6
+  ],
+  "mongolia": [
+   1570.8,
+   304.4
+  ],
+  "japan": [
+   1767.1,
+   373.5
+  ],
+  "afghanistan": [
+   1362.3,
+   364.5
+  ],
+  "china": [
+   1588.8,
+   391.6
+  ],
+  "middle_east": [
+   1231.9,
+   414.1
+  ],
+  "india": [
+   1434.4,
+   443.2
+  ],
+  "siam": [
+   1561.2,
+   487.7
+  ],
+  "indonesia": [
+   1563.5,
+   585.6
+  ],
+  "new_guinea": [
+   1781.8,
+   613
+  ],
+  "western_australia": [
+   1679,
+   729.7
+  ],
+  "eastern_australia": [
+   1801.8,
+   746.7
+  ]
+ },
+ "seaLinks": [
+  {
+   "a": "afghanistan",
+   "b": "ukraine",
+   "from": [
+    1291.9,
+    345.3
+   ],
+   "to": [
+    1276.1,
+    346.1
+   ]
+  },
+  {
+   "a": "brazil",
+   "b": "north_africa",
+   "from": [
+    801.6,
+    611.9
+   ],
+   "to": [
+    905.6,
+    513.9
+   ]
+  },
+  {
+   "a": "east_africa",
+   "b": "madagascar",
+   "from": [
+    1221.2,
+    643.6
+   ],
+   "to": [
+    1245.8,
+    674
+   ]
+  },
+  {
+   "a": "east_africa",
+   "b": "middle_east",
+   "from": [
+    1238.3,
+    511.7
+   ],
+   "to": [
+    1240.4,
+    511.5
+   ]
+  },
+  {
+   "a": "eastern_australia",
+   "b": "new_guinea",
+   "from": [
+    1790.3,
+    643
+   ],
+   "to": [
+    1791.4,
+    635.2
+   ]
+  },
+  {
+   "a": "egypt",
+   "b": "southern_europe",
+   "from": [
+    1138.6,
+    401.4
+   ],
+   "to": [
+    1136.3,
+    381
+   ]
+  },
+  {
+   "a": "great_britain",
+   "b": "iceland",
+   "from": [
+    959.4,
+    217.2
+   ],
+   "to": [
+    918.5,
+    163.6
+   ]
+  },
+  {
+   "a": "great_britain",
+   "b": "northern_europe",
+   "from": [
+    1006.4,
+    271.5
+   ],
+   "to": [
+    1012.9,
+    271.8
+   ]
+  },
+  {
+   "a": "great_britain",
+   "b": "scandinavia",
+   "from": [
+    992.9,
+    199.6
+   ],
+   "to": [
+    1026.9,
+    195.2
+   ]
+  },
+  {
+   "a": "great_britain",
+   "b": "western_europe",
+   "from": [
+    1006.4,
+    271.5
+   ],
+   "to": [
+    1007.7,
+    273.4
+   ]
+  },
+  {
+   "a": "greenland",
+   "b": "iceland",
+   "from": [
+    854.8,
+    123.6
+   ],
+   "to": [
+    870.5,
+    145.9
+   ]
+  },
+  {
+   "a": "greenland",
+   "b": "northwest_territory",
+   "from": [
+    595.6,
+    18.4
+   ],
+   "to": [
+    585,
+    12
+   ]
+  },
+  {
+   "a": "greenland",
+   "b": "ontario",
+   "from": [
+    709.1,
+    165.7
+   ],
+   "to": [
+    557.1,
+    269
+   ]
+  },
+  {
+   "a": "greenland",
+   "b": "quebec",
+   "from": [
+    726.1,
+    189.8
+   ],
+   "to": [
+    680,
+    246.1
+   ]
+  },
+  {
+   "a": "iceland",
+   "b": "scandinavia",
+   "from": [
+    923.7,
+    158.6
+   ],
+   "to": [
+    1027.4,
+    185.9
+   ]
+  },
+  {
+   "a": "indonesia",
+   "b": "new_guinea",
+   "from": [
+    1713.9,
+    581.4
+   ],
+   "to": [
+    1728,
+    587.8
+   ]
+  },
+  {
+   "a": "indonesia",
+   "b": "western_australia",
+   "from": [
+    1690.1,
+    639.9
+   ],
+   "to": [
+    1701.1,
+    661.6
+   ]
+  },
+  {
+   "a": "irkutsk",
+   "b": "kamchatka",
+   "from": [
+    1660.6,
+    216.9
+   ],
+   "to": [
+    1786.5,
+    254.8
+   ]
+  },
+  {
+   "a": "japan",
+   "b": "kamchatka",
+   "from": [
+    1787.6,
+    311.5
+   ],
+   "to": [
+    1787.4,
+    307.8
+   ]
+  },
+  {
+   "a": "japan",
+   "b": "mongolia",
+   "from": [
+    1717.4,
+    382.8
+   ],
+   "to": [
+    1663.8,
+    304
+   ]
+  },
+  {
+   "a": "kamchatka",
+   "b": "mongolia",
+   "from": [
+    1786.8,
+    303.9
+   ],
+   "to": [
+    1665,
+    302.2
+   ]
+  },
+  {
+   "a": "madagascar",
+   "b": "south_africa",
+   "from": [
+    1245.8,
+    674
+   ],
+   "to": [
+    1225.8,
+    666.1
+   ]
+  },
+  {
+   "a": "new_guinea",
+   "b": "western_australia",
+   "from": [
+    1770.2,
+    628.6
+   ],
+   "to": [
+    1757.1,
+    650
+   ]
+  },
+  {
+   "a": "north_africa",
+   "b": "southern_europe",
+   "from": [
+    1060.1,
+    367.4
+   ],
+   "to": [
+    1067.9,
+    362.8
+   ]
+  },
+  {
+   "a": "north_africa",
+   "b": "western_europe",
+   "from": [
+    969.2,
+    375.2
+   ],
+   "to": [
+    968.6,
+    373.9
+   ]
+  }
+ ],
+ "wrapLinks": [
+  {
+   "a": "alaska",
+   "b": "kamchatka",
+   "stubs": [
+    {
+     "territory": "alaska",
+     "from": [
+      65.1,
+      153.7
+     ],
+     "to": [
+      0,
+      153.7
+     ]
+    },
+    {
+     "territory": "kamchatka",
+     "from": [
+      2055,
+      149.6
+     ],
+     "to": [
+      2120,
+      149.6
+     ]
+    }
+   ]
+  }
+ ]
+}

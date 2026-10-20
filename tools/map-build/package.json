@@ -3,7 +3,16 @@
   "private": true,
   "type": "module",
   "description": "Natural Earth → apps/web/src/board/{board.svg,layout.json} via mapshaper. Run manually; outputs are committed.",
+  "scripts": {
+    "build": "node build.ts",
+    "test": "vitest run",
+    "typecheck": "tsc"
+  },
   "devDependencies": {
-    "mapshaper": "^0.7.91"
+    "@resvg/resvg-js": "^2.6.2",
+    "@types/node": "^22.0.0",
+    "mapshaper": "^0.7.91",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
   }
 }
