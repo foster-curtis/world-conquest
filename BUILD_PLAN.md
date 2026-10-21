@@ -321,7 +321,7 @@ Reply in 150 words or fewer: what was built, what was deferred, blockers, and th
 - [x] Board, selection machine + pointer/keyboard adapters, shortcut overlay, tip
 - [x] HUD, dice/animations, local replay + stats; headless full-game test
 - [x] Merged to `main`
-- [ ] **User play-tested and approved**
+- [x] **User play-tested and approved** (2026-10-20, after M3-fix-1 and M3-fix-2; approval given conditional on the fix-2 sidebar change)
 
 **M4: Backend**
 - [ ] Schema, RLS, `append_events` (denormalized columns, outbox), cron jobs + seed
