@@ -24,8 +24,11 @@ const LAT_MAX = 85;
 const LAT_MIN = -56;
 const SNAP_INTERVAL = 0.05; // projected units; welds admin-0 / admin-1 borders from different files
 const SIMPLIFY_INTERVAL = 4; // board units (weighted Visvalingam): the "chunky" level
+// Coarser simplification where the user asked for cleaner, rounder shapes (a shared border takes the larger value).
+const SIMPLIFY_BY_TERRITORY: Record<string, number> = {};
 const MIN_ISLAND_AREA = 220; // board units^2; smaller detached parts are removed (never a territory's largest part)
 const SMOOTH_ITERATIONS = 3; // Chaikin passes per arc
+const NEEDLE_WIDTH = 4; // board units; one-territory land spikes thinner than this are cut off
 const INLET_GAP = 5; // board units; one-territory water inlets narrower than this (mouth and mean width) are filled
 const MIN_TAP_RADIUS = 13; // board units; every territory's anchor must sit this far inside its shape
 const FOLD_MIN_DET = 0.05; // the warp's Jacobian determinant must stay above this everywhere near land
@@ -185,10 +188,13 @@ async function dissolve(features: unknown[]): Promise<OutFC> {
   return JSON.parse(String(res['out.json'])) as OutFC;
 }
 
+const simplifyExpr = () =>
+  Object.entries(SIMPLIFY_BY_TERRITORY).reduce((e, [t, v]) => `t == "${t}" ? ${v} : ${e}`, String(SIMPLIFY_INTERVAL));
+
 async function simplify(fc: OutFC) {
   const cmd = [
     '-i in.json name=land',
-    `-simplify visvalingam weighted keep-shapes interval=${SIMPLIFY_INTERVAL}`,
+    `-simplify visvalingam weighted keep-shapes variable interval='${simplifyExpr()}'`,
     '-o out.json format=topojson no-quantization',
   ].join(' ');
   const res = await mapshaper.applyCommands(cmd, {
@@ -400,7 +406,7 @@ async function main() {
   // Simplify on shared-arc topology, drop small islands, smooth each arc once.
   const topo = await simplify(land);
   const dropped = dropIslands(topo, MIN_ISLAND_AREA);
-  const inlets = fillInlets(topo, INLET_GAP);
+  const inlets = fillInlets(topo, INLET_GAP, NEEDLE_WIDTH);
   const unsmoothed = smoothArcs(topo, SMOOTH_ITERATIONS);
 
   // Fit: translate so the land starts at (PAD, MARGIN); the board size follows from the land's extent.

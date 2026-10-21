@@ -8,6 +8,7 @@
 //  - mls: moving-least-squares similarity deformation (Schaefer et al. 2006). Control points are grouped; each group
 //    gets one similarity (move / scale / rotate about a pivot) and the field blends them smoothly (weights 1/d^(2*alpha)).
 //    A group with no move/scale/rotate pins its region in place.
+//  - stretch: vertical scale as a smooth function of latitude (knots [lat, factor]); never folds.
 //  - lens: radial magnifier around a point (scale at the centre, fading smoothly to 1 at `radius` board units);
 //    injective for scale < 2.5. Used to enlarge Europe and small islands so they stay tappable.
 // Moves and radii are in projected board units (2000 units = 360 degrees before the warp).
@@ -28,7 +29,8 @@ interface Group {
 type Step =
   | { type: 'squeeze'; about: number; rows: [number, number][] }
   | { type: 'mls'; alpha?: number; groups: Group[] }
-  | { type: 'lens'; name?: string; center: LonLat; radius: number; scale: number };
+  | { type: 'lens'; name?: string; center: LonLat; radius: number; scale: number }
+  | { type: 'stretch'; rows: [number, number][] };
 export interface WarpConfig {
   steps: Step[];
 }
@@ -124,6 +126,33 @@ function mls(step: Extract<Step, { type: 'mls' }>, place: (ll: LonLat) => XY): F
   };
 }
 
+// Vertical stretch: dy'/dy = f(lat) (knots [lat, f], smoothstep between knots), integrated numerically. Monotone in y
+// for f > 0, so it never folds.
+function stretch(step: Extract<Step, { type: 'stretch' }>, place: (ll: LonLat) => XY): Fn {
+  const knots = step.rows.map(([lat, f]) => [place([0, lat])[1], f] as XY).sort((a, b) => a[0] - b[0]);
+  const fAt = (y: number): number => {
+    const first = knots[0] as XY;
+    const last = knots[knots.length - 1] as XY;
+    if (y <= first[0]) return first[1];
+    if (y >= last[0]) return last[1];
+    for (let i = 0; i + 1 < knots.length; i++) {
+      const [y0, f0] = knots[i] as XY;
+      const [y1, f1] = knots[i + 1] as XY;
+      if (y <= y1) return f0 + (f1 - f0) * smooth((y - y0) / (y1 - y0));
+    }
+    return last[1];
+  };
+  const y0 = -500;
+  const table: number[] = [0]; // table[k] = integral of f from y0 to y0 + k
+  for (let k = 1; k <= 3000; k++) table.push((table[k - 1] as number) + (fAt(y0 + k - 1) + fAt(y0 + k)) / 2);
+  return ([x, y]) => {
+    const t = Math.max(0, Math.min(2999.999, y - y0));
+    const k = Math.floor(t);
+    const a = table[k] as number;
+    return [x, a + ((table[k + 1] as number) - a) * (t - k) + y0];
+  };
+}
+
 // Radial magnifier: p' = c + (p - c) * (1 + (scale - 1) * (1 - r^2)^3), r = |p - c| / radius (identity outside).
 // The radial map stays monotone (no fold) for scale < 2.5.
 function lens(step: Extract<Step, { type: 'lens' }>, place: (ll: LonLat) => XY): Fn {
@@ -145,7 +174,13 @@ export function compileWarp(cfg: WarpConfig, project: (ll: LonLat) => XY): Fn {
     const prev = f;
     const place = (ll: LonLat) => prev(project(ll));
     const g =
-      step.type === 'squeeze' ? squeeze(step, place) : step.type === 'mls' ? mls(step, place) : lens(step, place);
+      step.type === 'squeeze'
+        ? squeeze(step, place)
+        : step.type === 'mls'
+          ? mls(step, place)
+          : step.type === 'stretch'
+            ? stretch(step, place)
+            : lens(step, place);
     f = (p) => g(prev(p));
   }
   return f;

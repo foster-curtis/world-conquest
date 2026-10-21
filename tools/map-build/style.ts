@@ -137,10 +137,11 @@ function thin(pts: XY[], d: number): XY[] {
  * Closes narrow water inlets on coasts that belong to a single territory (river estuaries, fjords, slivers between
  * two parts of one territory): where two points of a ring come within `gap` of each other, the coast between them
  * bends away into the land (water inside the loop), and that water is thin (mean width under `gap`), the coast is
- * replaced by the short segment across the mouth. Land lobes (peninsulas) are never cut, and borders shared with
- * another territory are never touched, so adjacency is unchanged. Returns the number of inlets filled.
+ * replaced by the short segment across the mouth. Needles (land lobes thinner than `needle` along their length, under
+ * a fifth of their ring's area) are cut off the same way. Borders shared with another territory are never touched,
+ * so adjacency is unchanged. Returns the number of cuts.
  */
-export function fillInlets(s: TopoShapes, gap: number): number {
+export function fillInlets(s: TopoShapes, gap: number, needle: number): number {
   const owners = new Map<number, Set<string>>();
   for (const [t, polys] of Object.entries(s.terr))
     for (const poly of polys)
@@ -169,6 +170,7 @@ export function fillInlets(s: TopoShapes, gap: number): number {
       }
     });
     const removed = new Set<number>();
+    const ringAbs = Math.abs(ringArea(pts));
     let i = 0;
     while (i < pts.length - 1) {
       const p = pts[i] as XY;
@@ -182,9 +184,12 @@ export function fillInlets(s: TopoShapes, gap: number): number {
         length += Math.hypot(q[0] - o[0], q[1] - o[1]);
         twice += o[0] * q[1] - q[0] * o[1];
         const d = Math.hypot(q[0] - p[0], q[1] - p[1]);
-        if (j < i + 2 || d >= gap || length < 3 * gap) continue;
+        if (j < i + 2) continue;
         const area = (twice + q[0] * p[1] - p[0] * q[1]) / 2; // loop closed by the segment back to p
-        if (Math.sign(area) !== landSign && (2 * Math.abs(area)) / length < gap) cut = j;
+        const width = (2 * Math.abs(area)) / length; // mean width of the loop
+        if (Math.sign(area) !== landSign) {
+          if (d < gap && length >= 3 * gap && width < gap) cut = j; // thin water inlet
+        } else if (d < needle && length >= 3 * needle && width < needle && Math.abs(area) < 0.2 * ringAbs) cut = j;
       }
       if (cut > 0) {
         for (let k = i + 1; k < cut; k++) removed.add(k);
@@ -308,32 +313,98 @@ function chains(arcs: XY[][], used: Set<number>): { refs: number[]; closed: bool
 }
 
 /**
- * Chaikin corner cutting on every chain of arcs. Where a smoothed chain would cross another (narrow inlets,
- * straits), both fall back to their unsmoothed shape, which mapshaper's simplification already keeps free of
- * crossings. Returns how many chains fell back.
+ * Chaikin corner cutting on every chain of arcs. Before each pass, every junction (where three or more chains meet)
+ * is relaxed toward its neighbours, so corners at junctions round off too: where exactly two coasts meet a border,
+ * the junction slides along the coastline; elsewhere it moves toward the mean of its neighbours. All chains ending at
+ * a junction move with it, so shared borders stay identical. Where a smoothed chain would cross another (narrow
+ * inlets, straits), it falls back to its unsmoothed shape (keeping the relaxed junctions). Returns how many chains
+ * fell back.
  */
 export function smoothArcs(s: TopoShapes, iterations: number): number {
   const used = new Set<number>();
-  for (const polys of Object.values(s.terr))
-    for (const poly of polys) for (const ring of poly) for (const ref of ring) used.add(ref >= 0 ? ref : ~ref);
+  const owners = new Map<number, Set<string>>();
+  for (const [t, polys] of Object.entries(s.terr))
+    for (const poly of polys)
+      for (const ring of poly)
+        for (const ref of ring) {
+          const i = ref >= 0 ? ref : ~ref;
+          used.add(i);
+          const o = owners.get(i) ?? new Set<string>();
+          o.add(t);
+          owners.set(i, o);
+        }
   const original = s.arcs;
   const list = chains(original, used);
-  // A chain's smoothed line goes on its first arc; its other arcs collapse to the chain's end point. Rings walk a
-  // chain's arcs in order (or all reversed), so they still trace the whole smoothed line exactly once.
-  const smoothedChain = list.map(({ refs, closed }) => {
-    let line: XY[] = [];
+  const lineOf = (refs: number[]) => {
+    const line: XY[] = [];
     for (const ref of refs) {
       const pts = arcOf(original, ref);
       line.push(...(line.length ? pts.slice(1) : pts));
     }
-    for (let k = 0; k < iterations; k++) line = closed ? chaikinClosed(line) : chaikinOpen(line);
-    return thin(line, MIN_STEP);
+    return line;
+  };
+  const key = (p: XY) => `${p[0]},${p[1]}`;
+  const base = list.map(({ refs }) => lineOf(refs));
+  const coast = list.map(({ refs }) => {
+    const r = refs[0] as number;
+    return owners.get(r >= 0 ? r : ~r)?.size === 1;
   });
-  const build = (fallback: Set<number>) => {
+  // junction -> chain ends (chain index, at its start?)
+  const junctionMap = new Map<string, [number, boolean][]>();
+  list.forEach(({ closed }, c) => {
+    if (closed) return;
+    const line = base[c] as XY[];
+    for (const atStart of [true, false]) {
+      const k = key((atStart ? line[0] : line[line.length - 1]) as XY);
+      const l = junctionMap.get(k) ?? [];
+      l.push([c, atStart]);
+      junctionMap.set(k, l);
+    }
+  });
+  const junctions = [...junctionMap.values()].filter((l) => l.length >= 3);
+  const junctionsOf = new Map<number, number[]>();
+  junctions.forEach((l, n) => {
+    for (const [c] of l) junctionsOf.set(c, [...(junctionsOf.get(c) ?? []), n]);
+  });
+
+  // Smooths every chain; junctions in `frozen` stay put, chains in `plain` keep their unsmoothed line.
+  const run = (frozen: Set<number>, plain: Set<number>): XY[][] => {
+    const lines = base.map((l) => l.slice());
+    for (let k = 0; k < iterations; k++) {
+      const moves = junctions.map((l, n) => {
+        const [c0, s0] = l[0] as [number, boolean];
+        const l0 = lines[c0] as XY[];
+        const J = (s0 ? l0[0] : l0[l0.length - 1]) as XY;
+        if (frozen.has(n)) return J;
+        const nb = (c: number, atStart: boolean): XY => {
+          const line = lines[c] as XY[];
+          return (atStart ? line[1] : line[line.length - 2]) as XY;
+        };
+        const coastal = l.filter(([c]) => coast[c]);
+        const use = coastal.length === 2 ? coastal : l;
+        const mx = use.reduce((a, [c, st]) => a + nb(c, st)[0], 0) / use.length;
+        const my = use.reduce((a, [c, st]) => a + nb(c, st)[1], 0) / use.length;
+        return [0.5 * J[0] + 0.5 * mx, 0.5 * J[1] + 0.5 * my] as XY;
+      });
+      junctions.forEach((l, n) => {
+        for (const [c, atStart] of l) {
+          const line = lines[c] as XY[];
+          line[atStart ? 0 : line.length - 1] = moves[n] as XY;
+        }
+      });
+      list.forEach(({ closed }, c) => {
+        if (plain.has(c)) return;
+        lines[c] = closed ? chaikinClosed(lines[c] as XY[]) : chaikinOpen(lines[c] as XY[]);
+      });
+    }
+    return lines.map((l, c) => (plain.has(c) ? l : thin(l, MIN_STEP)));
+  };
+  // A chain's line goes on its first arc; its other arcs collapse to the chain's end point. Rings walk a chain's
+  // arcs in order (or all reversed), so they still trace the whole line exactly once.
+  const build = (lines: XY[][]) => {
     const arcs = original.slice();
     list.forEach(({ refs }, c) => {
-      if (fallback.has(c)) return;
-      const line = smoothedChain[c] as XY[];
+      const line = lines[c] as XY[];
       const endPt = line[line.length - 1] as XY;
       refs.forEach((ref, n) => {
         const pts = n === 0 ? line : [endPt, endPt];
@@ -346,14 +417,23 @@ export function smoothArcs(s: TopoShapes, iterations: number): number {
   list.forEach(({ refs }, c) => {
     for (const ref of refs) chainOf.set(ref >= 0 ? ref : ~ref, c);
   });
-  const fallback = new Set<number>();
-  for (let round = 0; round < 10; round++) {
-    const bad = crossingArcs(build(fallback), used);
+  // Where smoothing makes chains cross: first freeze their junctions, then leave them unsmoothed.
+  const frozen = new Set<number>();
+  const plain = new Set<number>();
+  let arcs = build(run(frozen, plain));
+  for (let round = 0; round < 20; round++) {
+    const bad = crossingArcs(arcs, used);
     if (bad.size === 0) break;
-    for (const i of bad) fallback.add(chainOf.get(i) as number);
+    for (const i of bad) {
+      const c = chainOf.get(i) as number;
+      const js = (junctionsOf.get(c) ?? []).filter((n) => !frozen.has(n));
+      if (js.length) for (const n of js) frozen.add(n);
+      else plain.add(c);
+    }
+    arcs = build(run(frozen, plain));
   }
-  s.arcs = build(fallback);
-  return fallback.size;
+  s.arcs = arcs;
+  return plain.size;
 }
 
 /** Arcs (by index) with a segment that properly crosses a segment of any arc. */

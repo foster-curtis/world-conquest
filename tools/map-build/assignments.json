@@ -38,8 +38,7 @@
       }
     },
     "MYS": {
-      "to": "siam",
-      "keep": [99, 1, 105, 7],
+      "to": "drop",
       "parts": [
         {
           "bounds": [109, 0, 120, 6],
@@ -143,7 +142,26 @@
     "SXM": "drop",
     "OMN": "middle_east",
     "UZB": "afghanistan",
-    "KAZ": "ural",
+    "KAZ": {
+      "provinces": {
+        "East Kazakhstan": "siberia",
+        "Almaty": "ural",
+        "Almaty City": "ural",
+        "Zhambyl": "afghanistan",
+        "South Kazakhstan": "afghanistan",
+        "Mangghystau": "afghanistan",
+        "Qyzylorda": "afghanistan",
+        "Aqtöbe": "ural",
+        "North Kazakhstan": "ural",
+        "Qostanay": "ural",
+        "Pavlodar": "ural",
+        "West Kazakhstan": "ural",
+        "Atyrau": "ural",
+        "Aqmola": "ural",
+        "Qaraghandy": "ural",
+        "Astana": "ural"
+      }
+    },
     "TJK": "afghanistan",
     "LTU": "northern_europe",
     "BRA": {
@@ -151,7 +169,32 @@
       "keep": [-75, -34, -33, 6]
     },
     "URY": "argentina",
-    "MNG": "mongolia",
+    "MNG": {
+      "provinces": {
+        "Bayan-Ölgiy": "siberia",
+        "Hovd": "siberia",
+        "Uvs": "siberia",
+        "Govi-Altay": "siberia",
+        "Dornod": "mongolia",
+        "Sühbaatar": "mongolia",
+        "Dornogovi": "mongolia",
+        "Bayanhongor": "mongolia",
+        "Ömnögovi": "mongolia",
+        "Hövsgöl": "mongolia",
+        "Bulgan": "mongolia",
+        "Selenge": "mongolia",
+        "Dzavhan": "mongolia",
+        "Hentiy": "mongolia",
+        "Darhan-Uul": "mongolia",
+        "Töv": "mongolia",
+        "Arhangay": "mongolia",
+        "Orhon": "mongolia",
+        "Dundgovi": "mongolia",
+        "Övörhangay": "mongolia",
+        "Govĭ-Sümber": "mongolia",
+        "Ulaanbaatar": "mongolia"
+      }
+    },
     "RUS": {
       "provinces": {
         "Pskov": "ukraine",
@@ -294,7 +337,7 @@
       "to": "scandinavia",
       "keep": [7, 54, 16, 58]
     },
-    "LBY": "north_africa",
+    "LBY": "egypt",
     "TUN": "north_africa",
     "ROU": "southern_europe",
     "HUN": "southern_europe",
@@ -470,7 +513,11 @@
         "Yukon": "northwest_territory",
         "Nunavut": {
           "to": "northwest_territory",
-          "keep": [[-105, 63, -97, 69], [-78, 66, -73, 70]]
+          "keep": [-105, 63, -97, 69],
+          "parts": [
+            { "bounds": [-78, 66, -73, 70], "to": "greenland" },
+            { "bounds": [-85, 63.5, -82.5, 65.5], "to": "greenland" }
+          ]
         },
         "Northwest Territories": {
           "to": "northwest_territory",
@@ -526,7 +573,7 @@
         "New South Wales": "eastern_australia",
         "Jervis Bay Territory": "eastern_australia",
         "Victoria": "eastern_australia",
-        "Tasmania": "eastern_australia",
+        "Tasmania": "drop",
         "Australian Capital Territory": "eastern_australia",
         "Macquarie Island": "drop",
         "Lord Howe Island": "drop"
@@ -588,7 +635,7 @@
     "FRO": "drop",
     "IOA": "drop",
     "IOT": "drop",
-    "SGP": "siam",
+    "SGP": "drop",
     "NFK": "drop",
     "COK": "drop",
     "TON": "drop",
