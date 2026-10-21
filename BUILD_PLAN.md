@@ -333,7 +333,7 @@ Reply in 150 words or fewer: what was built, what was deferred, blockers, and th
 - [x] `api.ts` (protocol/426), auth (link + code), profile name, lobby, `/g/:code` states, sharing
 - [x] Online board (timers, Skip, ClaimTimeout, realtime, presence, catch-up), My games + badge, online replay + stats
 - [x] PWA; two-user integration test
-- [ ] Merged to `main`
+- [x] Merged to `main`
 
 **M6: Deploy wiring**
 - [ ] CI `deploy` job, `vercel.json`, keep-alive workflow, handoff secret names updated
