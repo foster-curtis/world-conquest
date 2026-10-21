@@ -11,23 +11,27 @@ export interface KeyLike {
   metaKey: boolean;
 }
 
-export type KeyAction = SelAction | { type: 'cards' };
+export type KeyAction = SelAction | { type: 'cards' } | { type: 'feed' } | { type: 'closeDice' };
 
 export interface KeyEnv {
   context: SelContext;
   /** The board element has keyboard focus. */
   boardFocused: boolean;
+  /** The dice result panel is open: Esc closes it before anything else. */
+  diceOpen?: boolean;
 }
 
 /** True for contexts where Home/End/arrows belong to the machine. */
 export function keyToAction(e: KeyLike, env: KeyEnv): KeyAction | null {
-  const { context, boardFocused } = env;
+  const { context, boardFocused, diceOpen } = env;
   const step = e.shiftKey ? 5 : 1;
   const mod = e.ctrlKey || e.metaKey;
 
   // Global
   if (mod && e.key === 'Enter') return { type: 'main' };
   if (!mod && !e.altKey && (e.key === 'c' || e.key === 'C')) return { type: 'cards' };
+  if (!mod && !e.altKey && (e.key === 'l' || e.key === 'L')) return { type: 'feed' };
+  if (diceOpen && !mod && !e.altKey && e.key === 'Escape') return { type: 'closeDice' };
   if (context === 'none') return null;
 
   if (mod && !e.altKey && (e.key === 'z' || e.key === 'Z')) return context === 'placing' ? { type: 'undo' } : null;

@@ -348,3 +348,64 @@ describe('keyboard adapter (SPEC 7.4 table)', () => {
     expect(a('C', 'none', false)).toEqual({ type: 'cards' });
   });
 });
+
+describe('placement: select and stay (note 3)', () => {
+  it('a tap places one army and keeps the territory selected', () => {
+    const e = env('place');
+    const { s } = run(e, [tap('b')]);
+    expect(s.focus).toBe('b');
+    expect(s.staged).toEqual({ b: 1 });
+  });
+
+  it('the pointer leaving the board or crossing other territories does not drop the selection', () => {
+    const e = env('place');
+    const { s } = run(e, [tap('b'), { type: 'hover', id: 'c' }, { type: 'hover', id: null }]);
+    expect(s.focus).toBe('b');
+  });
+
+  it('All here then puts every remaining army on the selected territory', () => {
+    const e = env('place', { remaining: 5 });
+    const { s } = run(e, [tap('b'), { type: 'hover', id: null }, { type: 'allHere' }]);
+    expect(s.staged).toEqual({ b: 5 });
+    expect(mainButton(s, e).enabled).toBe(true);
+  });
+
+  it('minus returns armies to the pool, never below what was staged this step', () => {
+    const e = env('place', { remaining: 3 });
+    let r = run(e, [tap('a'), tap('b'), tap('b')]);
+    expect(r.s.staged).toEqual({ a: 1, b: 2 });
+    r = run(e, [{ type: 'adjust', delta: -1 }], r.s);
+    expect(r.s.staged).toEqual({ a: 1, b: 1 });
+    r = run(
+      e,
+      [
+        { type: 'adjust', delta: -1 },
+        { type: 'adjust', delta: -1 },
+        { type: 'adjust', delta: -1 },
+      ],
+      r.s,
+    );
+    expect(r.s.staged).toEqual({ a: 1 });
+    expect(r.s.focus).toBe('b');
+    expect(mainButton(r.s, e).enabled).toBe(false);
+  });
+});
+
+describe('feed and dice shortcuts (notes 1 and 4)', () => {
+  const key = (k: string) => ({ key: k, code: k, shiftKey: false, ctrlKey: false, altKey: false, metaKey: false });
+  it('L toggles the activity log in every context', () => {
+    for (const context of ['idle', 'source', 'placing', 'attack-panel', 'slider', 'none'] as const) {
+      expect(keyToAction(key('l'), { context, boardFocused: false })).toEqual({ type: 'feed' });
+      expect(keyToAction(key('L'), { context, boardFocused: true })).toEqual({ type: 'feed' });
+    }
+  });
+  it('Ctrl+L is left to the browser', () => {
+    expect(keyToAction({ ...key('l'), ctrlKey: true }, { context: 'idle', boardFocused: true })).toBeNull();
+  });
+  it('Esc closes the dice result first, then works as before', () => {
+    expect(keyToAction(key('Escape'), { context: 'attack-panel', boardFocused: false, diceOpen: true })).toEqual({
+      type: 'closeDice',
+    });
+    expect(keyToAction(key('Escape'), { context: 'attack-panel', boardFocused: false })).toEqual({ type: 'back' });
+  });
+});

@@ -114,3 +114,13 @@ export function planAnimation(events: readonly GameEvent[], speed: Speed): AnimS
   }
   return steps;
 }
+
+/**
+ * The last dice or blitz result among the events of one command, independent of animation speed, so the
+ * result panel can stay open until the player closes it (SPEC 7.5) even when animation is off.
+ */
+export function lastRollResult(events: readonly GameEvent[]): Extract<AnimStep, { kind: 'dice' | 'blitz' }> | null {
+  let found: Extract<AnimStep, { kind: 'dice' | 'blitz' }> | null = null;
+  for (const s of planAnimation(events, 'normal')) if (s.kind === 'dice' || s.kind === 'blitz') found = s;
+  return found;
+}

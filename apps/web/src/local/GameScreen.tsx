@@ -3,13 +3,14 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { Board, type Fx } from '../board/Board.tsx';
 import { makeDisplay, makeTooltip } from '../board/display.ts';
-import { type AnimStep, effectiveSpeed, planAnimation, SPEEDS, type Speed } from '../dice/animation.ts';
+import { type AnimStep, effectiveSpeed, lastRollResult, planAnimation, SPEEDS, type Speed } from '../dice/animation.ts';
 import { DiceOverlay } from '../dice/DiceOverlay.tsx';
 import { loadSpeed, prefersReducedMotion, saveSpeed } from '../dice/settings.ts';
 import { ActionPanel } from '../hud/ActionPanel.tsx';
 import type { CardSet } from '../hud/cards.ts';
 import { buildFeed } from '../hud/feed.ts';
 import { ActivityFeed, CardsPanel, PlayersPanel, StepBar } from '../hud/Hud.tsx';
+import { loadFeedCollapsed, saveFeedCollapsed } from '../hud/prefs.ts';
 import { deriveEnv } from '../input/env.ts';
 import { keyToAction } from '../input/keyboard.ts';
 import { ShortcutOverlay, StartTip, useShortcutOverlay } from '../input/ShortcutOverlay.tsx';
@@ -46,6 +47,9 @@ export function GameScreen(props: GameScreenProps) {
   const [showCards, setShowCards] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [drawer, setDrawer] = useState(false);
+  const [feedCollapsed, setFeedCollapsed] = useState(loadFeedCollapsed);
+  const [dice, setDice] = useState<{ id: number; step: NonNullable<ReturnType<typeof lastRollResult>> } | null>(null);
+  const diceCounter = useRef(0);
   const boardRef = useRef<HTMLDivElement | null>(null);
   const [boardFocused, setBoardFocused] = useState(false);
   const overlay = useShortcutOverlay();
@@ -55,6 +59,8 @@ export function GameScreen(props: GameScreenProps) {
   const view = game.getView();
   const env = useMemo(() => deriveEnv(view, game.map), [view, game.map]);
   const [sel, setSel] = useState<SelState>(() => initialSel(env.key));
+  const diceRef = useRef(dice);
+  diceRef.current = dice;
   const selRef = useRef(sel);
   selRef.current = sel;
   const envRef = useRef(env);
@@ -71,6 +77,9 @@ export function GameScreen(props: GameScreenProps) {
     (events: Parameters<Parameters<LocalGame['subscribe']>[0]>[0]) => {
       const steps = planAnimation(events, effectiveSpeed(speed, prefersReducedMotion()));
       if (steps.length > 0) setAnim({ steps, i: 0 });
+      // The result stays open until the player closes it, even with animation off.
+      const roll = lastRollResult(events);
+      if (roll) setDice({ id: diceCounter.current++, step: roll });
     },
     [speed],
   );
@@ -97,6 +106,13 @@ export function GameScreen(props: GameScreenProps) {
     },
     [game, playEvents],
   );
+
+  const toggleFeed = useCallback(() => {
+    setFeedCollapsed((c) => {
+      saveFeedCollapsed(!c);
+      return !c;
+    });
+  }, []);
 
   const send = useCallback(
     (a: SelAction) => {
@@ -160,10 +176,16 @@ export function GameScreen(props: GameScreenProps) {
       const onButton = target?.matches('button, a') ?? false;
       if (onRange && (e.key.startsWith('Arrow') || e.key === 'Home' || e.key === 'End')) return;
       if (onButton && e.key === 'Enter' && !(e.ctrlKey || e.metaKey)) return;
-      const a = keyToAction(e, { context: ctx, boardFocused: document.activeElement === boardRef.current });
+      const a = keyToAction(e, {
+        context: ctx,
+        boardFocused: document.activeElement === boardRef.current,
+        diceOpen: diceRef.current !== null,
+      });
       if (!a) return;
       e.preventDefault();
       if (a.type === 'cards') setShowCards(true);
+      else if (a.type === 'feed') toggleFeed();
+      else if (a.type === 'closeDice') setDice(null);
       else send(a);
     };
     const onKeyUp = (e: KeyboardEvent) => {
@@ -176,7 +198,12 @@ export function GameScreen(props: GameScreenProps) {
       window.removeEventListener('keydown', onKey);
       window.removeEventListener('keyup', onKeyUp);
     };
-  }, [passing, showCards, locked, send]);
+  }, [passing, showCards, locked, send, toggleFeed]);
+
+  // The next player starts with a clean table.
+  useEffect(() => {
+    if (passing) setDice(null);
+  }, [passing]);
 
   const names = useMemo(() => {
     const byId = new Map(view.seats.map((s) => [s.seat, s.kind === 'neutral' ? 'Neutral' : s.displayName]));
@@ -215,7 +242,6 @@ export function GameScreen(props: GameScreenProps) {
   const main = mainButton(sel, env);
   const ctx = contextOf(sel, env);
   const targets = sel.source ? env.targets(sel.source) : [];
-  const step = anim ? anim.steps[anim.i] : null;
   const winner = p.kind === 'game_over' ? view.seats.find((s) => s.seat === p.winner) : null;
 
   const trade = (ids: CardSet) => {
@@ -299,13 +325,17 @@ export function GameScreen(props: GameScreenProps) {
         />
         {tip && <StartTip onDismiss={() => setTip(false)} />}
         {!over && !locked && <ActionPanel sel={sel} env={env} map={game.map} locked={locked} send={send} />}
-        {step && (step.kind === 'dice' || step.kind === 'blitz') && (
+        {dice && (
           <DiceOverlay
-            step={step}
-            fromName={game.map.territories[step.from].name}
-            toName={game.map.territories[step.to].name}
+            key={dice.id}
+            step={dice.step}
+            fromName={game.map.territories[dice.step.from].name}
+            toName={game.map.territories[dice.step.to].name}
             speed={speed === 'fast' ? 'fast' : 'normal'}
+            animate={effectiveSpeed(speed, prefersReducedMotion()) !== 'off'}
+            playing={locked}
             onSkip={() => setAnim(null)}
+            onClose={() => setDice(null)}
           />
         )}
       </main>
@@ -316,7 +346,7 @@ export function GameScreen(props: GameScreenProps) {
         <div className="side-players">
           <PlayersPanel view={view} />
         </div>
-        <ActivityFeed lines={feed} />
+        <ActivityFeed lines={feed} collapsed={feedCollapsed} onToggle={toggleFeed} />
       </aside>
       <footer className="bottom">
         <StepBar

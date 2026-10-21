@@ -46,7 +46,7 @@ export function deriveEnv(view: PlayerView, map: MapDefinition): SelEnv {
           remaining = p.reinforcementsRemaining;
         }
       } else if (p.step === 'attack') mode = 'attack';
-      else if (p.step === 'fortify' && !p.fortified) mode = 'fortify';
+      else if (p.step === 'fortify') mode = 'fortify'; // also after fortifying: End turn must stay available
     }
   }
 
@@ -56,7 +56,8 @@ export function deriveEnv(view: PlayerView, map: MapDefinition): SelEnv {
   if (mode === 'draft') candidates = order.filter((t) => !terr[t]);
   else if (mode === 'place') candidates = order.filter(owns);
   else if (mode === 'attack') candidates = order.filter((t) => owns(t) && armies(t) >= 2 && frontier(t));
-  else if (mode === 'fortify') candidates = order.filter((t) => owns(t) && armies(t) >= 2 && reach(t).length > 0);
+  else if (mode === 'fortify' && !(p.kind === 'turn' && p.fortified))
+    candidates = order.filter((t) => owns(t) && armies(t) >= 2 && reach(t).length > 0);
 
   const targets = (source: TerritoryId): readonly TerritoryId[] => {
     if (mode === 'attack') return map.territories[source].adjacent.filter((n) => !owns(n));

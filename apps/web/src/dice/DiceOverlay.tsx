@@ -26,16 +26,26 @@ export function DiceOverlay(props: {
   fromName: string;
   toName: string;
   speed: 'normal' | 'fast';
+  /** Tumble the dice (false when animation is off or reduce-motion is on: the result shows at once). */
+  animate: boolean;
+  /** The board is locked while the animation plays; after that the panel stays until closed. */
+  playing: boolean;
   onSkip: () => void;
+  onClose: () => void;
 }) {
   const { step, speed } = props;
-  const [rolling, setRolling] = useState(true);
+  const [rolling, setRolling] = useState(props.animate);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: the tumble starts once per result
   useEffect(() => {
+    if (!props.animate) {
+      setRolling(false);
+      return;
+    }
     setRolling(true);
     const ms = step.kind === 'dice' ? TUMBLE_MS[speed] : Math.max(200, step.durationMs - 600);
     const t = setTimeout(() => setRolling(false), ms);
     return () => clearTimeout(t);
-  }, [step, speed]);
+  }, [step]);
 
   const rolls = step.kind === 'dice' ? step : step.last;
   const pairs = pairDice(rolls.attackerRolls, rolls.defenderRolls);
@@ -44,8 +54,10 @@ export function DiceOverlay(props: {
     .sort((x, y) => y - x)
     .map((n, rank) => ({ id: `d${rank}`, n, lost: pairs[rank]?.attackerWins === true }));
   return (
-    <div className="dice-overlay" aria-live="polite">
-      <button type="button" className="backdrop" aria-label="Skip animation" onClick={props.onSkip} />
+    <div className={`dice-overlay${props.playing ? '' : ' settled'}`} aria-live="polite">
+      {props.playing && (
+        <button type="button" className="backdrop" aria-label="Skip animation" onClick={props.onSkip} />
+      )}
       <div className="dice-card">
         <div className="dice-title">
           {props.fromName} <span aria-hidden="true">→</span> {props.toName}
@@ -68,6 +80,11 @@ export function DiceOverlay(props: {
             {step.kind === 'blitz' ? 'Total: ' : ''}
             attacker −{step.attackerLosses} · defender −{step.defenderLosses}
           </div>
+        )}
+        {!props.playing && (
+          <button type="button" className="ghost" onClick={props.onClose}>
+            Close
+          </button>
         )}
       </div>
     </div>

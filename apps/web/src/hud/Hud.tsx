@@ -92,19 +92,39 @@ export function PlayersPanel({ view }: { view: PlayerView }) {
   );
 }
 
-export function ActivityFeed({ lines }: { lines: FeedLine[] }) {
+export function ActivityFeed({
+  lines,
+  collapsed = false,
+  onToggle,
+}: {
+  lines: FeedLine[];
+  collapsed?: boolean;
+  onToggle?: () => void;
+}) {
   const end = useRef<HTMLDivElement | null>(null);
   // biome-ignore lint/correctness/useExhaustiveDependencies: scroll whenever a line is added
   useEffect(() => {
     end.current?.scrollIntoView?.({ block: 'nearest' });
   }, [lines.length]);
   return (
-    <div className="feed" role="log" aria-label="Activity">
-      {lines.slice(-200).map((l) => (
-        <p key={l.key}>{l.text}</p>
-      ))}
-      <div ref={end} />
-    </div>
+    <>
+      <div className="feed-head">
+        <span>Activity</span>
+        {onToggle && (
+          <button type="button" className="ghost" aria-expanded={!collapsed} title="Shortcut: L" onClick={onToggle}>
+            {collapsed ? 'Show log' : 'Hide log'}
+          </button>
+        )}
+      </div>
+      {!collapsed && (
+        <div className="feed" role="log" aria-label="Activity">
+          {lines.slice(-200).map((l) => (
+            <p key={l.key}>{l.text}</p>
+          ))}
+          <div ref={end} />
+        </div>
+      )}
+    </>
   );
 }
 

@@ -1,6 +1,6 @@
 import type { GameEvent } from '@wc/engine';
 import { describe, expect, it } from 'vitest';
-import { BLITZ_CAP_MS, effectiveSpeed, pairDice, planAnimation, SETTLE_MS } from './animation.ts';
+import { BLITZ_CAP_MS, effectiveSpeed, lastRollResult, pairDice, planAnimation, SETTLE_MS } from './animation.ts';
 
 const roll = (a: number[], d: number[], al = 0, dl = 0): GameEvent => ({
   type: 'AttackRolled',
@@ -43,5 +43,16 @@ describe('dice animation plan', () => {
     expect(planAnimation(ev, 'off')).toEqual([]);
     expect(effectiveSpeed('normal', true)).toBe('off');
     expect(effectiveSpeed('fast', false)).toBe('fast');
+  });
+});
+
+describe('result stays available (SPEC 7.5)', () => {
+  it('lastRollResult returns the final roll regardless of animation speed, so the panel can stay open', () => {
+    expect(planAnimation([roll([6], [1], 0, 1)], 'off')).toEqual([]);
+    const r = lastRollResult([roll([6], [1], 0, 1), roll([2], [5], 1, 0)]);
+    expect(r?.kind).toBe('blitz');
+    expect(r).toMatchObject({ attackerLosses: 1, defenderLosses: 1 });
+    expect(lastRollResult([roll([6], [1], 0, 1)])?.kind).toBe('dice');
+    expect(lastRollResult([])).toBeNull();
   });
 });

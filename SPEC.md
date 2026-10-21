@@ -330,7 +330,7 @@ None for v1. `TurnStarted` writes an `outbox` row so an email sender can be adde
 ### 7.3 Board interactions
 
 - **Reinforce and setup:**
-  - Tapping (or Enter on) your own territory adds 1 army; a bottom panel has −/+ and "all here" buttons.
+  - Tapping (or Enter on) your own territory adds 1 army **and keeps it selected**; a bottom panel has −/+ and "all here" buttons that act on the selected territory. − takes back armies staged this step (never below zero staged) into the pool.
   - Placements are staged on the device with undo, and **Confirm** sends one `PlaceReinforcements` / `SubmitSetup` command.
   - In capitals setup, a "Choose capital" toggle switches what tapping does.
 - **Draft:** tap (or Enter on) an unclaimed territory to pick it; the countdown is shown.
@@ -351,7 +351,7 @@ The board is a single focus area. While it has focus, it takes Tab/Shift+Tab; **
 | **Placing** (reinforce/setup) | **↑ / ↓**: ±1 on the focused territory; **Shift+↑ / ↓**: ±5; **End**: all remaining here; **Home**: clear this territory; **Ctrl+Z**: undo. |
 | **Attack panel** | **1 / 2 / 3**: dice count; **Space**: roll; **B**: blitz; **Esc**: close the panel. Space rolls wherever focus is while the panel is open. |
 | **Sliders** (occupy, fortify) | **← / →** or **↑ / ↓**: ±1; **Shift+arrows**: ±5; **Home / End**: min / max; **Enter**: confirm. |
-| **Global** | **Ctrl+Enter**: the step bar's main button (Confirm / End attack / End turn); **C**: open cards; **hold Alt+/**: shortcut overlay. |
+| **Global** | **Ctrl+Enter**: the step bar's main button (Confirm / End attack / End turn); **C**: open cards; **L**: show / hide the activity log; **Esc** while a dice result is open: close it; **hold Alt+/**: shortcut overlay. |
 
 **Shortcut overlay:**
 - **Hold Alt+/** (Option+/ on Mac) to show a small overlay of every shortcut, grouped as in the table above, with the current context's group highlighted. Releasing the keys hides it.
@@ -363,6 +363,7 @@ The board is a single focus area. While it has focus, it takes Tab/Shift+Tab; **
 
 - **2D dice** tumble for about 0.6 s, then pair up highest-to-highest, with the losing dice dimmed. Lost armies float up as "−N" over each territory.
 - **Blitz** plays its rounds fast, capped at about 1.5 s total, then shows the totals.
+- **The result panel stays open until the player closes it** (Close button or Esc), even with animation off. Rolling again replaces it; the board stays usable around it once the animation has finished.
 - **Animation speed** setting: normal / fast / off. The device's reduce-motion setting means "off".
 - Other players' actions animate from the catch-up events in `ViewResponse` (§6 write path). Pass-and-play animates directly from local events.
 
@@ -374,7 +375,7 @@ The board is a single focus area. While it has focus, it takes Tab/Shift+Tab; **
 | **Timer** | Countdown to the deadline. In sync mode, other players see a **Skip** button once 5 minutes of inactivity have passed. |
 | **Cards** | Your hand. Valid sets are highlighted, the best set is pre-selected, and a forced trade (5+ cards, or 6+ after an elimination) blocks everything else. |
 | **Players** | Color, name, territory/army/card counts, online dot, strikes |
-| **Activity feed** | Plain-language log ("Ana took Brazil from Ben"); also lists continent bonuses |
+| **Activity feed** | Plain-language log ("Ana took Brazil from Ben"); also lists continent bonuses. Collapsible at every width (button or **L**); the choice is remembered per device |
 
 ### 7.7 Layout
 

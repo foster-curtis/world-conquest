@@ -382,6 +382,10 @@ _None._ (Format: `- [M#] YYYY-MM-DD: what's blocked, what was tried, what's need
 - [M3] Selection machine: Confirm for placing needs all armies placed (and a capital in capitals setup); fortify slider defaults to Max like occupy; `board/` is linted now (only board.svg and layout.json are excluded from Biome); camera `fit` was renamed `fitCamera` because Biome reads `fit(` as a focused test.
 - [M3] Replay and stats take `{gameId, settings, events}` (plain or sequenced events) so M5 can pass a `ReplayResponse` unchanged. Charts are hand-written SVG. Stats time axis = turn number; longest-held continent counts turns.
 - [M3] Not verified in a real browser this session (the browser tool disconnected): layout, touch gestures and animations need the user play-test. Deferred: PWA, timers, resign confirmation uses window.confirm.
+- [M3-fix-1] decision: activity log toggles with L (free in the 7.4 table); collapsed state kept in localStorage 'wc-feed-collapsed' (guarded), per device.
+- [M3-fix-1] decision: fortify bug root cause: after a fortify the step stays 'fortify' with fortified=true and deriveEnv mapped that to mode 'none', so the main button was disabled; it now stays mode 'fortify' with no candidates, so End turn works.
+- [M3-fix-1] decision: placement was already staged until Confirm; the real bug was pointer hover(null) clearing the selection when the mouse left the board for the panel. Hover is now ignored while placing (selection is sticky); no contract change.
+- [M3-fix-1] decision: dice result is kept in GameScreen state from `lastRollResult(events)` (works with animation off), closed by a Close button or Esc (Esc first, then the usual levels); no click-outside, because the board must stay clickable for the next roll. Enter is not used since it confirms sliders.
 
 ---
 

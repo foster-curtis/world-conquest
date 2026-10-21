@@ -191,6 +191,9 @@ export function mainButton(s: SelState, env: SelEnv): MainButton {
 export function reduce(s: SelState, a: SelAction, env: SelEnv): SelResult {
   switch (a.type) {
     case 'hover':
+      // Placing: the selected territory is sticky, so +, - and "All here" still act on it when the pointer
+      // leaves the board for the panel.
+      if (env.mode === 'place') return done(s);
       return done(s.focus === a.id ? s : { ...s, focus: a.id });
     case 'tap':
       return a.id === null ? back(s, env) : tap(s, a.id, env);
