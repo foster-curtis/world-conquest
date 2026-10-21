@@ -330,9 +330,9 @@ Reply in 150 words or fewer: what was built, what was deferred, blockers, and th
 - [x] Merged to `main`
 
 **M5: Online UI**
-- [ ] `api.ts` (protocol/426), auth (link + code), profile name, lobby, `/g/:code` states, sharing
-- [ ] Online board (timers, Skip, ClaimTimeout, realtime, presence, catch-up), My games + badge, online replay + stats
-- [ ] PWA; two-user integration test
+- [x] `api.ts` (protocol/426), auth (link + code), profile name, lobby, `/g/:code` states, sharing
+- [x] Online board (timers, Skip, ClaimTimeout, realtime, presence, catch-up), My games + badge, online replay + stats
+- [x] PWA; two-user integration test
 - [ ] Merged to `main`
 
 **M6: Deploy wiring**
@@ -401,6 +401,14 @@ _None._ (Format: `- [M#] YYYY-MM-DD: what's blocked, what was tried, what's need
 - [M4] decision: `JoinGame` is the only command a non-member may send (decided with the system actor as stand-in, name from `profiles`, userId from auth); no profile → 400 `NO_PROFILE`. Request bodies are shape-checked in `functions/game/validate.ts` before the engine.
 - [M4] decision: deps: function uses `npm:@supabase/supabase-js@^2` (unused `@supabase/server` import-map entry dropped); `@wc/integration` uses `@supabase/supabase-js`, `postgres` (direct SQL for backdating and cron calls) and `@types/node`; its script is `integration` (not `test`) so `pnpm test` skips it. Tests read keys from `supabase status -o json` in a global setup and run files serially.
 - [M4] decision: auth: `site_url` `http://localhost:5173`, redirect allowlist `http://localhost:5173`, `http://localhost:5173/**`, `http://127.0.0.1:5173/**` (the link carries `/g/CODE`); both templates share the subject "Your World Conquest sign-in code". The local email rate limit (2/h) didn't trigger with Mailpit, so it's unchanged.
+- [M5] decision: routing is the plain History API in `App.tsx` (`online/route.ts`: `/g/CODE`, `/g/CODE/replay`, plus `/g/CODE/stats` for the stats screen); no router library. Home and the pass-and-play screens stay a state switch. Hosting needs the SPA rewrite (M6 `vercel.json`); the PWA `navigateFallback` covers the installed app.
+- [M5] decision: `GameScreen` now takes a `GameSource` interface (`src/gameSource.ts`) instead of `LocalGame`; dispatch may be async, events arrive through `subscribe`, `onChange` covers snaps. Online extras (timer slot, presence, offline banner, notice) come in as an optional `online` prop; offline disables actions via the existing `locked` state. `PlayersPanel` gained presence dots and strikes.
+- [M5] decision: `OnlineGame` always sends `expectedVersion` = the version it holds (so `STALE_VERSION` reloads the view with a "game moved on" notice), then fetches `?since=`; first load uses `since=0` so the feed gets history (no animation). A snap (`events: null`) restarts the feed. Refreshes are single-flight with one follow-up.
+- [M5] decision: `online/api.ts` and `online/auth/auth.ts` are framework-free and imported directly by `tests/integration/src/online.test.ts`. The client also sends `apikey` (publishable key) next to the user JWT, which the local gateway accepts.
+- [M5] decision: "My games" reads `games` with embedded `game_seats` straight through RLS (members only), polled every 30 s while visible and on focus; the badge and tab title count `awaiting_seats` containing my seat. Realtime presence is keyed by user id and tracks `{seat}`.
+- [M5] decision: timers: client countdown from `deadlineAt`; `ClaimTimeout` fires once `now > deadline + 1 s` and retries every 3 s while still expired; sync Skip appears for non-current active players 5 min after `lastActionAt`.
+- [M5] decision: PWA: `vite-plugin-pwa` generateSW, `registerType: prompt`, `UpdatePrompt` banner; icons are generated placeholder PNGs in `apps/web/public` (replace with real art later). A 426 shows a separate "New version available, reload" banner. Env: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`; without them the build hides the online section.
+- [M5] decision: not verified in a real browser this session (no browser tool): the lobby, join page, timer and presence UI, magic-link return, and the service worker update flow need the user play-test. Deferred: rename of display name after first set (profile edit UI), changing profile name in settings.
 
 ---
 

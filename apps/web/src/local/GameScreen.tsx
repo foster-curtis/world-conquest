@@ -1,11 +1,13 @@
 // The pass-and-play game screen. It renders only `toPlayerView(state, currentSeat)` (via LocalGame.getView),
 // never full state, and shows the pass screen before every turn and setup turn (SPEC 1).
-import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import type { GameEvent } from '@wc/engine';
+import { type ReactNode, useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { Board, type Fx } from '../board/Board.tsx';
 import { makeDisplay, makeTooltip } from '../board/display.ts';
 import { type AnimStep, effectiveSpeed, lastRollResult, planAnimation, SPEEDS, type Speed } from '../dice/animation.ts';
 import { DiceOverlay } from '../dice/DiceOverlay.tsx';
 import { loadSpeed, prefersReducedMotion, saveSpeed } from '../dice/settings.ts';
+import type { GameSource } from '../gameSource.ts';
 import { ActionPanel } from '../hud/ActionPanel.tsx';
 import type { CardSet } from '../hud/cards.ts';
 import { buildFeed } from '../hud/feed.ts';
@@ -23,11 +25,21 @@ import {
   type SelEffect,
   type SelState,
 } from '../input/selection.ts';
-import type { LocalGame } from './controller.ts';
 import { PassScreen } from './PassScreen.tsx';
 
+/** Extras for online games (SPEC 7.6, 7.8): timer, presence, connection state. Absent in pass-and-play. */
+export interface OnlineExtras {
+  offline: boolean;
+  /** Seats that currently have the game open. */
+  present: ReadonlySet<number>;
+  /** Timer / Skip controls for the top bar. */
+  topExtra?: ReactNode;
+  notice?: string | null;
+}
+
 export interface GameScreenProps {
-  game: LocalGame;
+  game: GameSource;
+  online?: OnlineExtras;
   /** Show the "Hold Alt + /" tip (new games only). */
   showTip: boolean;
   /** Set when saving is unavailable (IndexedDB blocked). */
@@ -65,7 +77,8 @@ export function GameScreen(props: GameScreenProps) {
   selRef.current = sel;
   const envRef = useRef(env);
   envRef.current = env;
-  const locked = anim !== null;
+  const offline = props.online?.offline ?? false;
+  const locked = anim !== null || offline;
   const over = view.phase.kind === 'game_over';
 
   const setSpeed = (s: Speed) => {
@@ -74,7 +87,7 @@ export function GameScreen(props: GameScreenProps) {
   };
 
   const playEvents = useCallback(
-    (events: Parameters<Parameters<LocalGame['subscribe']>[0]>[0]) => {
+    (events: GameEvent[]) => {
       const steps = planAnimation(events, effectiveSpeed(speed, prefersReducedMotion()));
       if (steps.length > 0) setAnim({ steps, i: 0 });
       // The result stays open until the player closes it, even with animation off.
@@ -90,22 +103,24 @@ export function GameScreen(props: GameScreenProps) {
         boardRef.current?.blur();
         return;
       }
-      const events: Parameters<Parameters<LocalGame['subscribe']>[0]>[0][] = [];
-      const off = game.subscribe((e) => events.push(e));
-      const r = game.dispatch(ef.cmd);
-      off();
-      if (!r.ok) {
-        setError(r.error.message);
-        return;
-      }
-      setError(null);
-      setSel(initialSel(''));
-      selRef.current = initialSel('');
-      for (const e of events) playEvents(e);
-      rerender();
+      void Promise.resolve(game.dispatch(ef.cmd)).then((r) => {
+        if (!r.ok) {
+          setError(r.error.message);
+          rerender();
+          return;
+        }
+        setError(null);
+        setSel(initialSel(''));
+        selRef.current = initialSel('');
+        rerender();
+      });
     },
-    [game, playEvents],
+    [game],
   );
+
+  // Events to animate arrive here, from our own commands and (online) from other players.
+  useEffect(() => game.subscribe(playEvents), [game, playEvents]);
+  useEffect(() => game.onChange?.(rerender), [game]);
 
   const toggleSidebar = useCallback(() => {
     setSideClosed((c) => {
@@ -245,21 +260,23 @@ export function GameScreen(props: GameScreenProps) {
   const winner = p.kind === 'game_over' ? view.seats.find((s) => s.seat === p.winner) : null;
 
   const trade = (ids: CardSet) => {
-    const r = game.dispatch({ type: 'TradeCards', cardIds: ids });
-    if (!r.ok) setError(r.error.message);
-    else {
-      setError(null);
-      setShowCards(false);
-      send({ type: 'reset' });
+    void Promise.resolve(game.dispatch({ type: 'TradeCards', cardIds: ids })).then((r) => {
+      if (!r.ok) setError(r.error.message);
+      else {
+        setError(null);
+        setShowCards(false);
+        send({ type: 'reset' });
+      }
       rerender();
-    }
+    });
   };
 
   const resign = () => {
     if (!window.confirm(`${mySeat?.displayName} resigns? This cannot be undone.`)) return;
-    const r = game.dispatch({ type: 'LeaveGame' });
-    if (!r.ok) setError(r.error.message);
-    rerender();
+    void Promise.resolve(game.dispatch({ type: 'LeaveGame' })).then((r) => {
+      if (!r.ok) setError(r.error.message);
+      rerender();
+    });
   };
 
   return (
@@ -273,10 +290,11 @@ export function GameScreen(props: GameScreenProps) {
             'Game over'
           ) : (
             <>
-              Playing: <b>{mySeat?.displayName}</b>
+              {props.online ? 'You' : 'Playing'}: <b>{mySeat?.displayName}</b>
             </>
           )}
         </span>
+        {props.online?.topExtra}
         <span className="grow" />
         <button
           type="button"
@@ -309,13 +327,23 @@ export function GameScreen(props: GameScreenProps) {
           {props.warning}
         </div>
       )}
+      {offline && (
+        <div className="banner warn" role="status">
+          Reconnecting…
+        </div>
+      )}
+      {props.online?.notice && !error && (
+        <div className="banner warn" role="status">
+          {props.online.notice}
+        </div>
+      )}
       {error && (
         <div className="banner err" role="alert">
           {error}
         </div>
       )}
       <div className="strip">
-        <PlayersPanel view={view} />
+        <PlayersPanel view={view} present={props.online?.present} />
       </div>
       {sideClosed && (
         <div className="compact">
@@ -359,7 +387,7 @@ export function GameScreen(props: GameScreenProps) {
           {drawer ? 'Hide' : 'Players & log'}
         </button>
         <div className="side-players">
-          <PlayersPanel view={view} />
+          <PlayersPanel view={view} present={props.online?.present} />
         </div>
         <ActivityFeed lines={feed} />
       </aside>

@@ -1,4 +1,5 @@
-// Home (SPEC 1, 8.1): Pass-and-play, Resume game, "On this device" saves. Online is present but disabled until M5.
+// Home (SPEC 1, 8.1): Pass-and-play, Resume game, "On this device" saves, and the online section.
+import type { ReactNode } from 'react';
 import type { SaveMeta } from '../local/store.ts';
 
 const when = (iso: string) => {
@@ -17,6 +18,8 @@ export function Home(props: {
   onDelete: (id: string) => void;
   onReplay: (id: string) => void;
   onStats: (id: string) => void;
+  /** Online create/join and "My games"; absent when online is not configured. */
+  online?: ReactNode;
 }) {
   const latest = props.saves.find((s) => s.status === 'playing');
   return (
@@ -34,10 +37,8 @@ export function Home(props: {
         <button type="button" className="big" disabled={!latest} onClick={() => latest && props.onResume(latest.id)}>
           Resume game
         </button>
-        <button type="button" className="big" disabled title="Online play arrives in a later release">
-          Online <small>(coming soon)</small>
-        </button>
       </div>
+      {props.online ?? <p className="hint">Online play is not configured in this build.</p>}
       <section aria-label="On this device">
         <h2>On this device</h2>
         {props.saves.length === 0 ? (

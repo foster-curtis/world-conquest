@@ -62,7 +62,7 @@ export function StepBar(props: {
   );
 }
 
-export function PlayersPanel({ view }: { view: PlayerView }) {
+export function PlayersPanel({ view, present }: { view: PlayerView; present?: ReadonlySet<number> }) {
   const rows = useMemo(() => {
     const counts = new Map<number, { territories: number; armies: number }>();
     for (const t of Object.values(view.territories)) {
@@ -83,6 +83,19 @@ export function PlayersPanel({ view }: { view: PlayerView }) {
         >
           <span className="dot" style={{ background: COLOR_HEX[s.color] }} />
           <span className="pname">{s.kind === 'neutral' ? 'Neutral' : s.displayName}</span>
+          {present && s.kind === 'human' && (
+            <span
+              className={`presence${present.has(s.seat) ? ' on' : ''}`}
+              title={present.has(s.seat) ? 'Has the game open' : 'Away'}
+              role="img"
+              aria-label={present.has(s.seat) ? 'online' : 'away'}
+            />
+          )}
+          {s.kind === 'human' && s.status === 'active' && s.consecutiveStrikes > 0 && (
+            <span className="tag" title="Consecutive skipped turns; 3 means removal">
+              {s.consecutiveStrikes}/3 strikes
+            </span>
+          )}
           <span className="pstats" title="territories / armies / cards">
             {c.territories}T {c.armies}A {s.kind === 'human' ? `${s.handSize}C` : ''}
           </span>

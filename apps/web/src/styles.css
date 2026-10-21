@@ -1077,3 +1077,66 @@ kbd {
   color: var(--muted);
   font-variant-numeric: tabular-nums;
 }
+
+/* ---- online (M5) ---- */
+.presence {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid #888;
+  display: inline-block;
+}
+.presence.on {
+  background: #3c9;
+  border-color: #3c9;
+}
+.update-prompt,
+.banner.reload {
+  position: fixed;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  z-index: 60;
+  max-width: min(520px, 94vw);
+  box-shadow: 0 2px 10px rgb(0 0 0 / 20%);
+}
+.badge {
+  display: inline-block;
+  min-width: 22px;
+  padding: 0 7px;
+  border-radius: 11px;
+  background: var(--danger);
+  color: #fff;
+  font-size: 0.85rem;
+  text-align: center;
+}
+.stack {
+  display: grid;
+  gap: 10px;
+  margin: 10px 0;
+}
+.stack label {
+  display: grid;
+  gap: 4px;
+}
+.stack input,
+.stack select,
+.row input,
+.settings select {
+  font: inherit;
+  min-height: 40px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--ink);
+}
+.code {
+  font-size: 1.4rem;
+  letter-spacing: 0.12em;
+}
+.timer {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
