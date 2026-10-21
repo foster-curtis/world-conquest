@@ -386,6 +386,8 @@ _None._ (Format: `- [M#] YYYY-MM-DD: what's blocked, what was tried, what's need
 - [M3-fix-1] decision: fortify bug root cause: after a fortify the step stays 'fortify' with fortified=true and deriveEnv mapped that to mode 'none', so the main button was disabled; it now stays mode 'fortify' with no candidates, so End turn works.
 - [M3-fix-1] decision: placement was already staged until Confirm; the real bug was pointer hover(null) clearing the selection when the mouse left the board for the panel. Hover is now ignored while placing (selection is sticky); no contract change.
 - [M3-fix-1] decision: dice result is kept in GameScreen state from `lastRollResult(events)` (works with animation off), closed by a Close button or Esc (Esc first, then the usual levels); no click-outside, because the board must stay clickable for the next roll. Enter is not used since it confirms sliders.
+- [M3-fix-2] decision: the sidebar collapse is desktop-only (CSS media query min-width 801px); phones keep the existing bottom drawer, so the header toggle is hidden there. The grid column animates to 0 and the stage refits through the Board ResizeObserver. L state is stored in localStorage 'wc-sidebar-closed' (replaces 'wc-feed-collapsed'; old value is ignored).
+- [M3-fix-2] decision: the compact strip is a grid row between the top bar and the board (not an overlay), so it can never cover the action panel or step bar; it scrolls horizontally if seats overflow rather than wrapping.
 
 ---
 

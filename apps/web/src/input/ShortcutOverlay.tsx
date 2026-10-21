@@ -61,7 +61,7 @@ export const SHORTCUT_GROUPS: Group[] = [
     rows: [
       ['Ctrl+Enter', 'The main button (Confirm / End attack / End turn)'],
       ['C', 'Open cards'],
-      ['L', 'Show / hide the activity log'],
+      ['L', 'Show / hide the sidebar (desktop)'],
       ['Esc', 'Close the dice result'],
       ['Hold Alt+/', 'Show this overlay'],
     ],

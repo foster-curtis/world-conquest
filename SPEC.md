@@ -375,7 +375,9 @@ The board is a single focus area. While it has focus, it takes Tab/Shift+Tab; **
 | **Timer** | Countdown to the deadline. In sync mode, other players see a **Skip** button once 5 minutes of inactivity have passed. |
 | **Cards** | Your hand. Valid sets are highlighted, the best set is pre-selected, and a forced trade (5+ cards, or 6+ after an elimination) blocks everything else. |
 | **Players** | Color, name, territory/army/card counts, online dot, strikes |
-| **Activity feed** | Plain-language log ("Ana took Brazil from Ben"); also lists continent bonuses. Collapsible at every width (button or **L**); the choice is remembered per device |
+| **Sidebar (desktop)** | Players, cards and the activity feed live in a right sidebar that collapses horizontally (button in the top bar, or **L**); the board takes the freed width and refits. The choice is remembered per device. While closed, a one-line **player strip** under the top bar shows per player: color, name, territories, armies and cards (hand size, not for neutral). The current player is highlighted; eliminated players are dimmed. The step bar and action panel never hide. On phones the HUD keeps its bottom drawer (§7.7) |
+
+| **Activity feed** | Plain-language log ("Ana took Brazil from Ben"); also lists continent bonuses. Part of the sidebar |
 
 ### 7.7 Layout
 

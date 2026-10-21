@@ -5,6 +5,7 @@ import { COLOR_HEX } from '../board/colors.ts';
 import type { MainButton } from '../input/selection.ts';
 import { bestSet, type CardSet, validSets } from './cards.ts';
 import type { FeedLine } from './feed.ts';
+import { compactStrip } from './strip.ts';
 
 const STEPS = [
   { id: 'reinforce', label: 'Reinforce' },
@@ -92,15 +93,29 @@ export function PlayersPanel({ view }: { view: PlayerView }) {
   );
 }
 
-export function ActivityFeed({
-  lines,
-  collapsed = false,
-  onToggle,
-}: {
-  lines: FeedLine[];
-  collapsed?: boolean;
-  onToggle?: () => void;
-}) {
+export function CompactStrip({ view }: { view: PlayerView }) {
+  const rows = useMemo(() => compactStrip(view), [view]);
+  return (
+    <ul className="compact-strip" aria-label="Players">
+      {rows.map((r) => (
+        <li
+          key={r.seat}
+          className={`${r.current ? 'turn' : ''}${r.eliminated ? ' out' : ''}`}
+          aria-current={r.current ? 'true' : undefined}
+          title={`${r.name}: ${r.territories} territories, ${r.armies} armies${r.cards === null ? '' : `, ${r.cards} cards`}`}
+        >
+          <span className="dot" style={{ background: COLOR_HEX[r.color] }} />
+          <span className="pname">{r.name}</span>
+          <span className="pstats">
+            {r.territories}T {r.armies}A{r.cards === null ? '' : ` ${r.cards}C`}
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+export function ActivityFeed({ lines }: { lines: FeedLine[] }) {
   const end = useRef<HTMLDivElement | null>(null);
   // biome-ignore lint/correctness/useExhaustiveDependencies: scroll whenever a line is added
   useEffect(() => {
@@ -110,20 +125,13 @@ export function ActivityFeed({
     <>
       <div className="feed-head">
         <span>Activity</span>
-        {onToggle && (
-          <button type="button" className="ghost" aria-expanded={!collapsed} title="Shortcut: L" onClick={onToggle}>
-            {collapsed ? 'Show log' : 'Hide log'}
-          </button>
-        )}
       </div>
-      {!collapsed && (
-        <div className="feed" role="log" aria-label="Activity">
-          {lines.slice(-200).map((l) => (
-            <p key={l.key}>{l.text}</p>
-          ))}
-          <div ref={end} />
-        </div>
-      )}
+      <div className="feed" role="log" aria-label="Activity">
+        {lines.slice(-200).map((l) => (
+          <p key={l.key}>{l.text}</p>
+        ))}
+        <div ref={end} />
+      </div>
     </>
   );
 }

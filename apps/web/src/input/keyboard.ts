@@ -11,7 +11,7 @@ export interface KeyLike {
   metaKey: boolean;
 }
 
-export type KeyAction = SelAction | { type: 'cards' } | { type: 'feed' } | { type: 'closeDice' };
+export type KeyAction = SelAction | { type: 'cards' } | { type: 'sidebar' } | { type: 'closeDice' };
 
 export interface KeyEnv {
   context: SelContext;
@@ -30,7 +30,7 @@ export function keyToAction(e: KeyLike, env: KeyEnv): KeyAction | null {
   // Global
   if (mod && e.key === 'Enter') return { type: 'main' };
   if (!mod && !e.altKey && (e.key === 'c' || e.key === 'C')) return { type: 'cards' };
-  if (!mod && !e.altKey && (e.key === 'l' || e.key === 'L')) return { type: 'feed' };
+  if (!mod && !e.altKey && (e.key === 'l' || e.key === 'L')) return { type: 'sidebar' };
   if (diceOpen && !mod && !e.altKey && e.key === 'Escape') return { type: 'closeDice' };
   if (context === 'none') return null;
 

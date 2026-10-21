@@ -9,8 +9,8 @@ import { loadSpeed, prefersReducedMotion, saveSpeed } from '../dice/settings.ts'
 import { ActionPanel } from '../hud/ActionPanel.tsx';
 import type { CardSet } from '../hud/cards.ts';
 import { buildFeed } from '../hud/feed.ts';
-import { ActivityFeed, CardsPanel, PlayersPanel, StepBar } from '../hud/Hud.tsx';
-import { loadFeedCollapsed, saveFeedCollapsed } from '../hud/prefs.ts';
+import { ActivityFeed, CardsPanel, CompactStrip, PlayersPanel, StepBar } from '../hud/Hud.tsx';
+import { loadSidebarClosed, saveSidebarClosed } from '../hud/prefs.ts';
 import { deriveEnv } from '../input/env.ts';
 import { keyToAction } from '../input/keyboard.ts';
 import { ShortcutOverlay, StartTip, useShortcutOverlay } from '../input/ShortcutOverlay.tsx';
@@ -47,7 +47,7 @@ export function GameScreen(props: GameScreenProps) {
   const [showCards, setShowCards] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [drawer, setDrawer] = useState(false);
-  const [feedCollapsed, setFeedCollapsed] = useState(loadFeedCollapsed);
+  const [sideClosed, setSideClosed] = useState(loadSidebarClosed);
   const [dice, setDice] = useState<{ id: number; step: NonNullable<ReturnType<typeof lastRollResult>> } | null>(null);
   const diceCounter = useRef(0);
   const boardRef = useRef<HTMLDivElement | null>(null);
@@ -107,9 +107,9 @@ export function GameScreen(props: GameScreenProps) {
     [game, playEvents],
   );
 
-  const toggleFeed = useCallback(() => {
-    setFeedCollapsed((c) => {
-      saveFeedCollapsed(!c);
+  const toggleSidebar = useCallback(() => {
+    setSideClosed((c) => {
+      saveSidebarClosed(!c);
       return !c;
     });
   }, []);
@@ -184,7 +184,7 @@ export function GameScreen(props: GameScreenProps) {
       if (!a) return;
       e.preventDefault();
       if (a.type === 'cards') setShowCards(true);
-      else if (a.type === 'feed') toggleFeed();
+      else if (a.type === 'sidebar') toggleSidebar();
       else if (a.type === 'closeDice') setDice(null);
       else send(a);
     };
@@ -198,7 +198,7 @@ export function GameScreen(props: GameScreenProps) {
       window.removeEventListener('keydown', onKey);
       window.removeEventListener('keyup', onKeyUp);
     };
-  }, [passing, showCards, locked, send, toggleFeed]);
+  }, [passing, showCards, locked, send, toggleSidebar]);
 
   // The next player starts with a clean table.
   useEffect(() => {
@@ -263,7 +263,7 @@ export function GameScreen(props: GameScreenProps) {
   };
 
   return (
-    <div className={`game${drawer ? ' drawer-open' : ''}`}>
+    <div className={`game${drawer ? ' drawer-open' : ''}${sideClosed ? ' side-closed' : ''}`}>
       <header className="topbar">
         <button type="button" className="ghost" onClick={props.onHome}>
           ← Home
@@ -278,6 +278,16 @@ export function GameScreen(props: GameScreenProps) {
           )}
         </span>
         <span className="grow" />
+        <button
+          type="button"
+          className="ghost side-toggle"
+          aria-expanded={!sideClosed}
+          aria-controls="game-sidebar"
+          title="Shortcut: L"
+          onClick={toggleSidebar}
+        >
+          {sideClosed ? 'Show sidebar' : 'Hide sidebar'}
+        </button>
         <label className="speed">
           Animation
           <select value={speed} onChange={(e) => setSpeed(e.target.value as Speed)}>
@@ -307,6 +317,11 @@ export function GameScreen(props: GameScreenProps) {
       <div className="strip">
         <PlayersPanel view={view} />
       </div>
+      {sideClosed && (
+        <div className="compact">
+          <CompactStrip view={view} />
+        </div>
+      )}
       <main className="stage">
         <Board
           boardRef={boardRef}
@@ -339,14 +354,14 @@ export function GameScreen(props: GameScreenProps) {
           />
         )}
       </main>
-      <aside className="sidebar">
+      <aside className="sidebar" id="game-sidebar">
         <button type="button" className="ghost drawer-toggle" onClick={() => setDrawer((d) => !d)}>
           {drawer ? 'Hide' : 'Players & log'}
         </button>
         <div className="side-players">
           <PlayersPanel view={view} />
         </div>
-        <ActivityFeed lines={feed} collapsed={feedCollapsed} onToggle={toggleFeed} />
+        <ActivityFeed lines={feed} />
       </aside>
       <footer className="bottom">
         <StepBar

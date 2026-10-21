@@ -393,10 +393,10 @@ describe('placement: select and stay (note 3)', () => {
 
 describe('feed and dice shortcuts (notes 1 and 4)', () => {
   const key = (k: string) => ({ key: k, code: k, shiftKey: false, ctrlKey: false, altKey: false, metaKey: false });
-  it('L toggles the activity log in every context', () => {
+  it('L toggles the whole sidebar in every context', () => {
     for (const context of ['idle', 'source', 'placing', 'attack-panel', 'slider', 'none'] as const) {
-      expect(keyToAction(key('l'), { context, boardFocused: false })).toEqual({ type: 'feed' });
-      expect(keyToAction(key('L'), { context, boardFocused: true })).toEqual({ type: 'feed' });
+      expect(keyToAction(key('l'), { context, boardFocused: false })).toEqual({ type: 'sidebar' });
+      expect(keyToAction(key('L'), { context, boardFocused: true })).toEqual({ type: 'sidebar' });
     }
   });
   it('Ctrl+L is left to the browser', () => {

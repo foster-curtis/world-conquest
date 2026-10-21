@@ -1,17 +1,17 @@
 // Per-device HUD preferences (localStorage; every access is guarded, private mode just forgets).
-const FEED_KEY = 'wc-feed-collapsed';
+const SIDEBAR_KEY = 'wc-sidebar-closed';
 
-export function loadFeedCollapsed(): boolean {
+export function loadSidebarClosed(): boolean {
   try {
-    return localStorage.getItem(FEED_KEY) === '1';
+    return localStorage.getItem(SIDEBAR_KEY) === '1';
   } catch {
     return false;
   }
 }
 
-export function saveFeedCollapsed(v: boolean): void {
+export function saveSidebarClosed(v: boolean): void {
   try {
-    localStorage.setItem(FEED_KEY, v ? '1' : '0');
+    localStorage.setItem(SIDEBAR_KEY, v ? '1' : '0');
   } catch {
     // ignore
   }
