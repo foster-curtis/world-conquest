@@ -1,5 +1,8 @@
 {
   "links": {
+    "greenland|ontario": {
+      "to": { "board": [334, 293] }
+    },
     "north_africa|southern_europe": {
       "from": { "lonlat": [11, 37] },
       "to": { "lonlat": [16, 38.3] }

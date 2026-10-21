@@ -33,9 +33,9 @@ const SIMPLIFY_BY_TERRITORY: Record<string, number> = {
 };
 const MIN_ISLAND_AREA = 220; // board units^2; smaller detached parts are removed (never a territory's largest part)
 const SMOOTH_ITERATIONS = 3; // Chaikin passes per arc
-const NEEDLE_WIDTH = 5; // board units; one-territory land spikes thinner than this are cut off
+const NEEDLE_WIDTH = 7; // board units; one-territory land spikes thinner than this are cut off
 const INLET_GAP = 5; // board units; one-territory water inlets narrower than this (mouth and mean width) are filled
-const MIN_TAP_RADIUS = 13; // board units; every territory's anchor must sit this far inside its shape
+const MIN_TAP_RADIUS = 15; // board units; every territory's anchor must sit this far inside its shape
 const FOLD_MIN_DET = 0.05; // the warp's Jacobian determinant must stay above this everywhere near land
 
 const here = dirname(fileURLToPath(import.meta.url));
