@@ -336,7 +336,7 @@ Reply in 150 words or fewer: what was built, what was deferred, blockers, and th
 - [x] Merged to `main`
 
 **M6: Deploy wiring**
-- [ ] CI `deploy` job, `vercel.json`, keep-alive workflow, handoff secret names updated
+- [x] CI `deploy` job, `vercel.json`, keep-alive workflow, handoff secret names updated
 - [ ] Merged to `main`
 
 - [ ] **Final handoff** list printed for the user
@@ -394,6 +394,7 @@ _None._ (Format: `- [M#] YYYY-MM-DD: what's blocked, what was tried, what's need
 - [M4] decision: `awaiting_seats` (and every other denormalized `games` column, plus `game_seats` rows) is computed in SQL inside `append_events` from `new_state` (`public.awaiting_seats(jsonb)`), so it can never drift from the stored state; setup lists unsubmitted active humans only.
 - [M4] decision: `games.status` = lobby | active (draft/setup/turn) | finished | canceled; `games.phase` = `phase.kind`. `game_state` is deleted on game_over and canceled; the function then rebuilds state by folding events with `createInitialState(id, games.settings)`.
 - [M4] decision: creation goes through RPC `create_game` (insert row + first `append_events` in one transaction); join-code collisions (23505) retry with a new crypto-random code. `append_events` locks the `games` row (FOR UPDATE) and raises `STALE_VERSION` on a mismatch; all game RPCs/cron functions are revoked from anon/authenticated, granted to service_role only.
+- [M6] decision: deploy job uses `supabase/setup-cli@v1` pinned to 2.121.0, `functions deploy game --use-api` (no Docker) and `vercel@latest` via npx; keep-alive GETs `/rest/v1/profiles?select=id&limit=1` with the publishable key daily at 06:17 UTC; vercel.json disables Git deploys via `git.deploymentEnabled: false`. Deploy job not run (no secrets yet).
 - [M4] contract (additive): transport section in `types.ts`: `PROTOCOL_HEADER`, `SYSTEM_SECRET_HEADER`, `CreateGameRequest/Response`, `JoinLookupResponse`, `CommandRequest/Response`, `SystemRequest`, `GAME_CHANNEL_PREFIX`, `VERSION_BROADCAST_EVENT`, `VersionPing`, `ApiErrorCode`, `ApiError`, `ApiRoute`; SPEC §6 Write path has the route table. No event or command changes.
 - [M4] decision: protocol: missing or different `x-wc-protocol` → 426 `PROTOCOL_MISMATCH` (checked before auth); `/system` is exempt so a protocol bump never needs a cron SQL change. `CommandResponse` is only `{ version }`: clients fetch their view with `?since=`. `?since` greater than the current version also returns `events: null`.
 - [M4] decision: `expectedVersion` on commands is optional: with it a moved-on game answers `STALE_VERSION`; without it the function re-decides on the fresh state (5 tries). Duplicate ClaimTimeouts still fail via the engine's deadline check.
@@ -429,9 +430,10 @@ Do these in order; Resend must be verified before friends can sign in (§6 Auth)
    - Set the cron Vault values and the system-actor secret per M4's Build decisions (function URL, secret).
 4. **Vercel:** create the project (root `apps/web`, Vite) without a Git connection (auto-deploy off); add the domain
    `world-conquest.fostercurtis.dev`; create a deploy token; note the org and project IDs.
-5. **GitHub:** create a `production` environment with secrets: Supabase access token, project ref, DB password; Vercel
-   token, org ID, project ID; `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`; plus anything the keep-alive
-   workflow needs. (M6 replaces this line with the exact names.)
+5. **GitHub:** create a `production` environment with these secrets (exact names): `SUPABASE_ACCESS_TOKEN`,
+   `SUPABASE_PROJECT_REF`, `SUPABASE_DB_PASSWORD`, `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`,
+   `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`. The keep-alive workflow reuses the two `VITE_*` secrets.
+   The Vercel project's Root Directory must be `apps/web`; `vercel build` runs from the repo root so `@wc/engine` resolves.
 6. **Ship:** push the branch, open a PR, let CI pass, merge to `main`. Watch the first deploy. If
    `functions deploy` can't bundle the engine from outside `supabase/`, switch to the §6 sync-script fallback.
 7. **Smoke test:** sign in on a phone with the code, create a game, join from a second account, play a turn.
