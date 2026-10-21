@@ -314,7 +314,7 @@ Reply in 150 words or fewer: what was built, what was deferred, blockers, and th
 - [x] Pipeline + `assignments.json`; `board.svg` + `layout.json`; `preview.png`
 - [x] §5.3 cross-checks against `maps/classic.ts` pass; build is reproducible
 - [x] Merged to `main`
-- [ ] **User approved preview PNG**
+- [x] **User approved preview PNG** (2026-10-20, after M2-fix-1 round 2; user may refine the art later)
 
 **M3: Pass-and-play UI**
 - [ ] Home, local setup, pass-the-device, IndexedDB save/resume
