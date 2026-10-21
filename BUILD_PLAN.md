@@ -247,7 +247,7 @@ milestones may only *add* new event types or optional fields, and must log that 
   - Final handoff (section 9 of this file) updated with the exact secret names the workflows use
 - **Acceptance:**
   - Standard checks.
-  - Workflows validate: `npx --yes @action-validator/cli .github/workflows/ci.yml .github/workflows/keep-alive.yml`.
+  - Workflows validate: `npx --yes @action-validator/cli .github/workflows/ci.yml && npx --yes @action-validator/cli .github/workflows/keep-alive.yml` (the CLI takes one path per call).
   - `apps/web/vercel.json` parses and contains the catch-all rewrite.
   - The deploy job is **not** run (no secrets yet); say so in the report.
 - **Risks / fallbacks:**
@@ -337,7 +337,7 @@ Reply in 150 words or fewer: what was built, what was deferred, blockers, and th
 
 **M6: Deploy wiring**
 - [x] CI `deploy` job, `vercel.json`, keep-alive workflow, handoff secret names updated
-- [ ] Merged to `main`
+- [x] Merged to `main`
 
 - [ ] **Final handoff** list printed for the user
 
@@ -410,6 +410,8 @@ _None._ (Format: `- [M#] YYYY-MM-DD: what's blocked, what was tried, what's need
 - [M5] decision: timers: client countdown from `deadlineAt`; `ClaimTimeout` fires once `now > deadline + 1 s` and retries every 3 s while still expired; sync Skip appears for non-current active players 5 min after `lastActionAt`.
 - [M5] decision: PWA: `vite-plugin-pwa` generateSW, `registerType: prompt`, `UpdatePrompt` banner; icons are generated placeholder PNGs in `apps/web/public` (replace with real art later). A 426 shows a separate "New version available, reload" banner. Env: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`; without them the build hides the online section.
 - [M5] decision: not verified in a real browser this session (no browser tool): the lobby, join page, timer and presence UI, magic-link return, and the service worker update flow need the user play-test. Deferred: rename of display name after first set (profile edit UI), changing profile name in settings.
+- [orch] M5 and M6 ran in parallel (user-approved 2026-10-21; M6 in a worktree, rebased after M5 merged): M6 touches only workflows, `vercel.json` and the handoff, and the env names and engine import were already settled.
+- [orch] M6 acceptance: `@action-validator/cli` accepts a single path, so the workflows are validated one per call.
 
 ---
 
