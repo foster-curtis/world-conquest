@@ -317,9 +317,9 @@ Reply in 150 words or fewer: what was built, what was deferred, blockers, and th
 - [x] **User approved preview PNG** (2026-10-20, after M2-fix-1 round 2; user may refine the art later)
 
 **M3: Pass-and-play UI**
-- [ ] Home, local setup, pass-the-device, IndexedDB save/resume
-- [ ] Board, selection machine + pointer/keyboard adapters, shortcut overlay, tip
-- [ ] HUD, dice/animations, local replay + stats; headless full-game test
+- [x] Home, local setup, pass-the-device, IndexedDB save/resume
+- [x] Board, selection machine + pointer/keyboard adapters, shortcut overlay, tip
+- [x] HUD, dice/animations, local replay + stats; headless full-game test
 - [ ] Merged to `main`
 - [ ] **User play-tested and approved**
 
@@ -373,6 +373,15 @@ _None._ (Format: `- [M#] YYYY-MM-DD: what's blocked, what was tried, what's need
 - [M2-fix-1] Mongolia buffer: China split by admin-1; Inner Mongolia, Heilongjiang, Jilin, Liaoning -> mongolia; Zabaykalsky (Chita) -> irkutsk; Amur, Jewish AO, Khabarovsk, Primorsky -> kamchatka (Sakhalin dropped: it read as a sliver). Korea -> mongolia: it touches only Manchuria (mongolia) and Primorsky (kamchatka, adjacent), so the checks pass with no tolerance. Yakutsk touches neither mongolia nor china. Siberia-China border widened by giving East Kazakhstan and western Mongolia (Bayan-Olgii, Hovd, Uvs, Govi-Altai) to siberia.
 - [M2-fix-1] Dropped for the stylized look: Indonesia except Sumatra/Java/Borneo/Sulawesi (Malaysian Borneo + Brunei -> indonesia), Timor-Leste, PNG islands, Canadian Arctic islands except Baffin, Russian Arctic islands (Novaya Zemlya, Franz Josef, Severnaya Zemlya, New Siberian, Wrangel), Hainan, East Thrace (gives a short Dardanelles link). Cabinda -> congo. `keep` may be a list of boxes and provinces may carry their own rule.
 - [M2-fix-1] Round-2 assignments (user notes on sizes/shapes): Libya -> egypt; Baffin + Southampton -> greenland (short links to NWT, Quebec and Ontario); Kyzylorda, South Kazakhstan, Zhambyl, Mangystau -> afghanistan; Denmark -> northern_europe (removed the Jutland spike; scandinavia-northern_europe is now a sea link); Peninsular Malaysia, Singapore, Tasmania dropped. New `split` rule (lon/lat box cut, via mapshaper clip/erase): Alaska panhandle -> alberta (removed a BC sliver), Alaska Peninsula tip dropped (needle).
+
+- [M3] No router, gesture or animation libraries: screens are a state switch in `App.tsx`, zoom/pan/pinch are own pointer code over pure `board/camera.ts`, animation is CSS plus timers; fewer deps, nothing to bundle.
+- [M3] Dev deps added to apps/web: `vitest` (plus `vitest.config.ts`, node env) and `fake-indexeddb` for the persistence test. No jsdom: tests cover logic and the controller.
+- [M3] Saves: IndexedDB `wc-local` with stores `meta` and `events` (key [id, n]); events are appended after every command, resume folds them with `apply`. In-memory fallback plus a visible warning when IndexedDB fails.
+- [M3] Pass screen is derived, not stored: key = phase:seat:turnCount, so it shows before every setup turn and turn, and again after a resume.
+- [M3] UI only receives `toPlayerView` and `redactEvent`-ed events from `LocalGame`; the full log is available only at game over (replay). Game-over board uses viewer null.
+- [M3] Selection machine: Confirm for placing needs all armies placed (and a capital in capitals setup); fortify slider defaults to Max like occupy; `board/` is linted now (only board.svg and layout.json are excluded from Biome); camera `fit` was renamed `fitCamera` because Biome reads `fit(` as a focused test.
+- [M3] Replay and stats take `{gameId, settings, events}` (plain or sequenced events) so M5 can pass a `ReplayResponse` unchanged. Charts are hand-written SVG. Stats time axis = turn number; longest-held continent counts turns.
+- [M3] Not verified in a real browser this session (the browser tool disconnected): layout, touch gestures and animations need the user play-test. Deferred: PWA, timers, resign confirmation uses window.confirm.
 
 ---
 

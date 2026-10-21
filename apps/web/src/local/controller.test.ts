@@ -118,3 +118,18 @@ describe('local controller', () => {
     expect(g.map).toBe(classicMap);
   });
 });
+
+describe('what reaches the UI', () => {
+  it('events are redacted for the viewer and the full log waits for game over', async () => {
+    const rnd = mulberry(33);
+    const g = await LocalGame.create(memoryStore(), players(3), 'classic', { rng: rnd });
+    for (let i = 0; i < 400 && !g.over; i++) step(g, rnd);
+    const me = g.viewer();
+    for (const e of g.visibleEvents()) {
+      if (e.type === 'GameStarted') expect(e.deck).toEqual([]);
+      if (e.type === 'CardDrawn' && e.seat !== me) expect(e.cardId).toBe('');
+      if (e.type === 'SetupSubmitted' && e.seat !== me) expect(e.placements).toEqual({});
+    }
+    if (!g.over) expect(() => g.fullEvents()).toThrow();
+  });
+});
