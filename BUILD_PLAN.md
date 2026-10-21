@@ -324,9 +324,9 @@ Reply in 150 words or fewer: what was built, what was deferred, blockers, and th
 - [x] **User play-tested and approved** (2026-10-20, after M3-fix-1 and M3-fix-2; approval given conditional on the fix-2 sidebar change)
 
 **M4: Backend**
-- [ ] Schema, RLS, `append_events` (denormalized columns, outbox), cron jobs + seed
-- [ ] `game` function (create, lookup, commands, views, replay, 426, system actor); transport types in `types.ts` + SPEC
-- [ ] Email templates + `config.toml` auth URLs; `tests/integration` green on the local stack
+- [x] Schema, RLS, `append_events` (denormalized columns, outbox), cron jobs + seed
+- [x] `game` function (create, lookup, commands, views, replay, 426, system actor); transport types in `types.ts` + SPEC
+- [x] Email templates + `config.toml` auth URLs; `tests/integration` green on the local stack
 - [ ] Merged to `main`
 
 **M5: Online UI**
@@ -388,6 +388,19 @@ _None._ (Format: `- [M#] YYYY-MM-DD: what's blocked, what was tried, what's need
 - [M3-fix-1] decision: dice result is kept in GameScreen state from `lastRollResult(events)` (works with animation off), closed by a Close button or Esc (Esc first, then the usual levels); no click-outside, because the board must stay clickable for the next roll. Enter is not used since it confirms sliders.
 - [M3-fix-2] decision: the sidebar collapse is desktop-only (CSS media query min-width 801px); phones keep the existing bottom drawer, so the header toggle is hidden there. The grid column animates to 0 and the stage refits through the Board ResizeObserver. L state is stored in localStorage 'wc-sidebar-closed' (replaces 'wc-feed-collapsed'; old value is ignored).
 - [M3-fix-2] decision: the compact strip is a grid row between the top bar and the board (not an overlay), so it can never cover the action panel or step bar; it scrolls horizontally if seats overflow rather than wrapping.
+- [M4] decision: local stack ports moved from 543xx to 553xx (API 55321, DB 55322, Studio 55323, mail 55324, inspector 8093), because another local Supabase project already holds the defaults on this machine; M5's `.env` uses `http://127.0.0.1:55321`.
+- [M4] decision: engine import works directly (`deno.json` → `../../../packages/engine/src/index.ts`) for both `deno check` and local serving under `supabase start`; no sync-script fallback. Production bundling is still settled by the first deploy (handoff).
+- [M4] decision: system actor auth = shared secret header `x-wc-system-secret` checked (constant time) against function env `WC_SYSTEM_SECRET`; cron reads Vault `game_system_secret` + `game_function_url` (base URL, `/system` is appended). Local values: config.toml `[edge_runtime.secrets]` and seed.sql (`local-dev-system-secret`, `http://kong:8000/functions/v1/game`). Prod: `supabase secrets set WC_SYSTEM_SECRET=…` and `vault.create_secret(…)` for both names. Dedicated secret instead of the service-role key so Vault never holds full DB rights.
+- [M4] decision: `awaiting_seats` (and every other denormalized `games` column, plus `game_seats` rows) is computed in SQL inside `append_events` from `new_state` (`public.awaiting_seats(jsonb)`), so it can never drift from the stored state; setup lists unsubmitted active humans only.
+- [M4] decision: `games.status` = lobby | active (draft/setup/turn) | finished | canceled; `games.phase` = `phase.kind`. `game_state` is deleted on game_over and canceled; the function then rebuilds state by folding events with `createInitialState(id, games.settings)`.
+- [M4] decision: creation goes through RPC `create_game` (insert row + first `append_events` in one transaction); join-code collisions (23505) retry with a new crypto-random code. `append_events` locks the `games` row (FOR UPDATE) and raises `STALE_VERSION` on a mismatch; all game RPCs/cron functions are revoked from anon/authenticated, granted to service_role only.
+- [M4] contract (additive): transport section in `types.ts`: `PROTOCOL_HEADER`, `SYSTEM_SECRET_HEADER`, `CreateGameRequest/Response`, `JoinLookupResponse`, `CommandRequest/Response`, `SystemRequest`, `GAME_CHANNEL_PREFIX`, `VERSION_BROADCAST_EVENT`, `VersionPing`, `ApiErrorCode`, `ApiError`, `ApiRoute`; SPEC §6 Write path has the route table. No event or command changes.
+- [M4] decision: protocol: missing or different `x-wc-protocol` → 426 `PROTOCOL_MISMATCH` (checked before auth); `/system` is exempt so a protocol bump never needs a cron SQL change. `CommandResponse` is only `{ version }`: clients fetch their view with `?since=`. `?since` greater than the current version also returns `events: null`.
+- [M4] decision: `expectedVersion` on commands is optional: with it a moved-on game answers `STALE_VERSION`; without it the function re-decides on the fresh state (5 tries). Duplicate ClaimTimeouts still fail via the engine's deadline check.
+- [M4] decision: version ping = Realtime REST broadcast (`/realtime/v1/api/broadcast`) on public channel `game:<id>`, event `version`, best effort after commit; it carries only a number, so no Realtime RLS. Users are resolved with `auth.getUser(jwt)` (`verify_jwt = false` stays).
+- [M4] decision: `JoinGame` is the only command a non-member may send (decided with the system actor as stand-in, name from `profiles`, userId from auth); no profile → 400 `NO_PROFILE`. Request bodies are shape-checked in `functions/game/validate.ts` before the engine.
+- [M4] decision: deps: function uses `npm:@supabase/supabase-js@^2` (unused `@supabase/server` import-map entry dropped); `@wc/integration` uses `@supabase/supabase-js`, `postgres` (direct SQL for backdating and cron calls) and `@types/node`; its script is `integration` (not `test`) so `pnpm test` skips it. Tests read keys from `supabase status -o json` in a global setup and run files serially.
+- [M4] decision: auth: `site_url` `http://localhost:5173`, redirect allowlist `http://localhost:5173`, `http://localhost:5173/**`, `http://127.0.0.1:5173/**` (the link carries `/g/CODE`); both templates share the subject "Your World Conquest sign-in code". The local email rate limit (2/h) didn't trigger with Mailpit, so it's unchanged.
 
 ---
 

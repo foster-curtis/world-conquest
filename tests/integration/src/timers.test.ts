@@ -58,15 +58,17 @@ describe('cron', () => {
     const lobby = await createGame(await newUser('Lobby'));
 
     // inside one transaction, so the every-minute job can't race the check
-    const ids = await sql.begin(async (tx) => {
-      await tx`update public.games set deadline_at = now() - interval '5 seconds' where id = ${expired.gameId}`;
-      await tx`update public.games set deadline_at = now() - interval '500 milliseconds' where id = ${fresh.gameId}`;
-      const rows = await tx`select public.expired_game_ids() as id`;
-      throw Object.assign(new Error('rollback'), { rows });
-    }).catch((e: { rows?: { id: string }[] }) => {
-      if (!e.rows) throw e;
-      return e.rows.map((r) => r.id);
-    });
+    const ids = await sql
+      .begin(async (tx) => {
+        await tx`update public.games set deadline_at = now() - interval '5 seconds' where id = ${expired.gameId}`;
+        await tx`update public.games set deadline_at = now() - interval '500 milliseconds' where id = ${fresh.gameId}`;
+        const rows = await tx`select public.expired_game_ids() as id`;
+        throw Object.assign(new Error('rollback'), { rows });
+      })
+      .catch((e: { rows?: { id: string }[] }) => {
+        if (!e.rows) throw e;
+        return e.rows.map((r) => r.id);
+      });
     expect(ids).toContain(expired.gameId);
     expect(ids).not.toContain(fresh.gameId); // within the 1 s grace
     expect(ids).not.toContain(lobby.gameId);

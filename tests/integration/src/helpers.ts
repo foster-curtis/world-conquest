@@ -8,9 +8,9 @@ import {
   type CreateGameRequest,
   type CreateGameResponse,
   isValidSet,
+  type PlayerView,
   PROTOCOL_HEADER,
   PROTOCOL_VERSION,
-  type PlayerView,
   type ViewResponse,
 } from '@wc/engine';
 import postgres from 'postgres';
@@ -82,7 +82,11 @@ export async function call<T = unknown>(
     if (v === null) delete h[k];
     else h[k] = v;
   }
-  const res = await fetch(FN_URL + path, { method, headers: h, body: body === undefined ? undefined : JSON.stringify(body) });
+  const res = await fetch(FN_URL + path, {
+    method,
+    headers: h,
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
   return { status: res.status, body: (await res.json()) as T };
 }
 
@@ -95,7 +99,12 @@ export async function createGame(user: TestUser, req: CreateGameRequest = {}): P
   return ok(await call<CreateGameResponse>(user, 'POST', '/games', req), 'create');
 }
 
-export function send(user: TestUser, gameId: string, command: Command | Record<string, unknown>, expectedVersion?: number) {
+export function send(
+  user: TestUser,
+  gameId: string,
+  command: Command | Record<string, unknown>,
+  expectedVersion?: number,
+) {
   return call<CommandResponse | ApiError>(user, 'POST', `/games/${gameId}/commands`, {
     command,
     ...(expectedVersion === undefined ? {} : { expectedVersion }),
@@ -162,7 +171,10 @@ export async function passTurn(bySeat: Map<number, TestUser>, gameId: string): P
   if (again.phase.kind !== 'turn') throw new Error('turn moved on');
   const [first] = owned(again, again.viewer as number);
   if (again.phase.reinforcementsRemaining > 0) {
-    await must(me, gameId, { type: 'PlaceReinforcements', placements: { [first]: again.phase.reinforcementsRemaining } });
+    await must(me, gameId, {
+      type: 'PlaceReinforcements',
+      placements: { [first]: again.phase.reinforcementsRemaining },
+    });
   }
   return must(me, gameId, { type: 'EndTurn' });
 }

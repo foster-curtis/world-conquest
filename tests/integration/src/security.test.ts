@@ -104,10 +104,21 @@ describe('RLS', () => {
       expect(upd.error ?? upd.data?.length === 0).toBeTruthy();
       const del = await user.client.from('game_seats').delete().eq('game_id', gameId).select();
       expect(del.error ?? del.data?.length === 0).toBeTruthy();
-      for (const fn of ['append_events', 'create_game', 'expired_game_ids', 'cron_claim_timeouts', 'call_game_system']) {
+      for (const fn of [
+        'append_events',
+        'create_game',
+        'expired_game_ids',
+        'cron_claim_timeouts',
+        'call_game_system',
+      ]) {
         const args =
           fn === 'append_events'
-            ? { p_game_id: gameId, p_expected_version: 0, p_events: [{ type: 'GameCanceled', reason: 'host' }], p_new_state: {} }
+            ? {
+                p_game_id: gameId,
+                p_expected_version: 0,
+                p_events: [{ type: 'GameCanceled', reason: 'host' }],
+                p_new_state: {},
+              }
             : {};
         const rpc = await user.client.rpc(fn, args);
         expect(rpc.error).not.toBeNull();
@@ -152,9 +163,15 @@ describe('protocol and replay', () => {
     }
     const sys = await call(null, 'POST', '/system', { gameId: crypto.randomUUID(), action: 'timeout' });
     expect(sys.status).toBe(401); // system route needs the secret
-    const forged = await call(null, 'POST', '/system', { gameId: crypto.randomUUID(), action: 'timeout' }, {
-      'x-wc-system-secret': 'guess',
-    });
+    const forged = await call(
+      null,
+      'POST',
+      '/system',
+      { gameId: crypto.randomUUID(), action: 'timeout' },
+      {
+        'x-wc-system-secret': 'guess',
+      },
+    );
     expect(forged.status).toBe(401);
   });
 

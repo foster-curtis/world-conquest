@@ -47,7 +47,9 @@ describe('turns through the function', () => {
     const channel = listener.channel(GAME_CHANNEL_PREFIX + gameId);
     await new Promise<void>((resolve, reject) => {
       channel
-        .on('broadcast', { event: VERSION_BROADCAST_EVENT }, (m) => pings.push((m.payload as { version: number }).version))
+        .on('broadcast', { event: VERSION_BROADCAST_EVENT }, (m) =>
+          pings.push((m.payload as { version: number }).version),
+        )
         .subscribe((status) => {
           if (status === 'SUBSCRIBED') resolve();
           else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') reject(new Error(status));
@@ -114,7 +116,8 @@ describe('turns through the function', () => {
     // next player's turn; outbox row for each TurnStarted
     const [g2] = await sql`select current_seat, awaiting_seats from public.games where id = ${gameId}`;
     expect(g2.current_seat).toBe(other[0]);
-    const outbox = await sql`select kind, recipient_user_id, payload from public.outbox where game_id = ${gameId} order by id`;
+    const outbox =
+      await sql`select kind, recipient_user_id, payload from public.outbox where game_id = ${gameId} order by id`;
     expect(outbox.map((o) => o.recipient_user_id)).toEqual([me.id, other[1].id]);
     expect(outbox[1]).toMatchObject({ kind: 'turn_started', payload: { seat: other[0] } });
 

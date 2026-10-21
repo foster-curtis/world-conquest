@@ -282,6 +282,26 @@ profiles    (user_id PRIMARY KEY → auth.users, display_name, updated_at)  -- u
    - If the client is more than `MAX_CATCHUP_EVENTS` (200) behind, or sends no `since`, `events` is `null`: the client snaps to the new view without animating.
    - Events the viewer may not see at all (`redactEvent` → `null`) are omitted.
 
+**HTTP API** of the `game` function (types: transport section of `types.ts`; base `<SUPABASE_URL>/functions/v1/game`):
+
+| Route | Body → response | Who |
+| --- | --- | --- |
+| `POST /games` | `CreateGameRequest` → `CreateGameResponse` (host joins as seat 0, mode `online`) | signed in, with a profile |
+| `GET /join/:code` | → `JoinLookupResponse` (join page; non-members can't read `games`) | signed in |
+| `POST /games/:id/commands` | `CommandRequest` → `CommandResponse { version }` | members (anyone for `JoinGame`) |
+| `GET /games/:id/view?since=N` | → `ViewResponse` | members |
+| `GET /games/:id/replay` | → `ReplayResponse`, only in `game_over` (else 409 `NOT_FINISHED`) | members |
+| `POST /system` | `SystemRequest { gameId, action: 'timeout' | 'expire' }` → `CommandResponse` | cron, via `x-wc-system-secret` |
+
+- Every client request sends `x-wc-protocol: <PROTOCOL_VERSION>` and `Authorization: Bearer <user JWT>`; a missing or
+  different protocol gets 426. `/system` skips the protocol check and authenticates with the shared secret
+  `WC_SYSTEM_SECRET` (function env), which the cron reads from Vault as `game_system_secret` next to `game_function_url`.
+- Errors are `ApiError { error: { code, message } }`: engine rejections 422 (`STALE_VERSION` 409), 400 `BAD_REQUEST` /
+  `NO_PROFILE`, 401, 403 `NOT_MEMBER`, 404, 426, 500.
+- On a version conflict the function re-decides against the new state (up to 5 tries); with `expectedVersion` set it
+  answers `STALE_VERSION` instead.
+- After every write it broadcasts `{ version }` (event `version`) on the public Realtime channel `game:<gameId>`.
+
 ### Security
 
 - Clients **never read full state** (RLS can't redact inside JSON). All reads of game state go through the edge function's player view.

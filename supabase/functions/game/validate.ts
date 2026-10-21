@@ -86,7 +86,8 @@ export function command(v: unknown): Command {
       return { type: 'PlaceReinforcements', placements: placements(v.placements) };
     case 'Attack': {
       if (v.attackerDice !== 1 && v.attackerDice !== 2 && v.attackerDice !== 3) bad('attackerDice must be 1–3');
-      if (v.untilConquered !== undefined && typeof v.untilConquered !== 'boolean') bad('untilConquered must be boolean');
+      if (v.untilConquered !== undefined && typeof v.untilConquered !== 'boolean')
+        bad('untilConquered must be boolean');
       return {
         type: 'Attack',
         from: territory(v.from),

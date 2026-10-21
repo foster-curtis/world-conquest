@@ -111,13 +111,15 @@ describe('lobby through the function', () => {
     expect(Object.values(view.territories).filter((t) => t.owner === neutral[0].seat).length).toBe(14);
     if (view.phase.kind !== 'setup') throw new Error('expected setup');
 
-    const [g] = await sql`select status, phase, awaiting_seats, deadline_at, version from public.games where id = ${gameId}`;
+    const [g] =
+      await sql`select status, phase, awaiting_seats, deadline_at, version from public.games where id = ${gameId}`;
     expect(g.status).toBe('active');
     expect(g.phase).toBe('setup');
     expect(g.awaiting_seats).toEqual([0, 1]);
     expect(new Date(g.deadline_at).toISOString()).toBe(view.phase.deadlineAt);
     expect(g.version).toBe(view.version);
-    const seats = await sql`select seat, kind, color, user_id from public.game_seats where game_id = ${gameId} order by seat`;
+    const seats =
+      await sql`select seat, kind, color, user_id from public.game_seats where game_id = ${gameId} order by seat`;
     expect(seats.map((s) => s.kind)).toEqual(['human', 'human', 'neutral']);
   });
 

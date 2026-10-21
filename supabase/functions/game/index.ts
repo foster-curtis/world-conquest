@@ -21,8 +21,8 @@ import {
   PROTOCOL_VERSION,
   type ReplayResponse,
   redactEvent,
-  SYSTEM_SECRET_HEADER,
   type SequencedEvent,
+  SYSTEM_SECRET_HEADER,
   type SystemRequest,
   toPlayerView,
   type ViewResponse,
@@ -119,7 +119,11 @@ async function runCommand(
 async function createGame(userId: string, req: Request): Promise<CreateGameResponse> {
   const body = await readJson(req);
   const color = validate.optionalColor(body.color);
-  const settings: GameSettings = { ...defaultSettings('online'), ...validate.settingsPatch(body.settings), mode: 'online' };
+  const settings: GameSettings = {
+    ...defaultSettings('online'),
+    ...validate.settingsPatch(body.settings),
+    mode: 'online',
+  };
   const problem = validateSettings(settings, 1);
   if (problem) throw rejection('INVALID_SETTINGS', problem);
   const displayName = await requireProfile(userId);
