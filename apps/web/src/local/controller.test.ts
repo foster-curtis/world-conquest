@@ -1,5 +1,5 @@
 import 'fake-indexeddb/auto';
-import { classicMap, type Color, type WinCondition } from '@wc/engine';
+import { type Color, classicMap, type WinCondition } from '@wc/engine';
 import { describe, expect, it } from 'vitest';
 import { LocalGame } from './controller.ts';
 import { randomMove } from './randomMoves.ts';

@@ -359,4 +359,3 @@ function sync(s: SelState, env: SelEnv): SelState {
   }
   return next;
 }
-

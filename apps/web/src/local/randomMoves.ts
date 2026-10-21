@@ -1,14 +1,8 @@
 // Test driver: picks a plausible legal command from what the acting player can see (their PlayerView).
 // Not a product feature (bots are out of scope, SPEC 10).
-import {
-  type Command,
-  connectedOwned,
-  isValidSet,
-  type PlayerView,
-  type SeatId,
-  type TerritoryId,
-} from '@wc/engine';
+
 import type { MapDefinition } from '@wc/engine';
+import { type Command, connectedOwned, isValidSet, type PlayerView, type SeatId, type TerritoryId } from '@wc/engine';
 
 const pick = <T>(rnd: () => number, xs: readonly T[]): T => xs[Math.floor(rnd() * xs.length)] as T;
 

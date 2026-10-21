@@ -56,7 +56,13 @@ describe('candidates (Tab / Shift+Tab)', () => {
 
   it('attack: only sources with a target before selection, only targets after', () => {
     const e = env('attack');
-    expect(run(e, [{ type: 'cycle', dir: 1 }, { type: 'cycle', dir: 1 }, { type: 'cycle', dir: 1 }]).s.focus).toBe('a');
+    expect(
+      run(e, [
+        { type: 'cycle', dir: 1 },
+        { type: 'cycle', dir: 1 },
+        { type: 'cycle', dir: 1 },
+      ]).s.focus,
+    ).toBe('a');
     const { s } = run(e, [tap('b'), { type: 'cycle', dir: 1 }]);
     expect(s.focus).toBe('c'); // b's targets are [c] (a is excluded in this fixture)
     expect(run(e, [tap('b'), { type: 'cycle', dir: 1 }, { type: 'cycle', dir: 1 }]).s.focus).toBe('c');
@@ -144,16 +150,19 @@ describe('placing', () => {
 
   it('adjust only touches the focused owned territory', () => {
     expect(run(e, [{ type: 'adjust', delta: 1 }]).s.staged).toEqual({});
-    expect(run(env('place', { candidates: ['a'] }), [{ type: 'hover', id: 'b' }, { type: 'adjust', delta: 1 }]).s.staged).toEqual({});
+    expect(
+      run(env('place', { candidates: ['a'] }), [
+        { type: 'hover', id: 'b' },
+        { type: 'adjust', delta: 1 },
+      ]).s.staged,
+    ).toEqual({});
   });
 
   it('Confirm needs everything placed, then sends one PlaceReinforcements', () => {
     const { s } = run(e, [tap('a'), { type: 'confirm' }]);
     expect(mainButton(s, e).enabled).toBe(false);
     const full = run(e, [tap('a'), { type: 'allHere' }, { type: 'main' }]);
-    expect(full.effects).toEqual([
-      { type: 'command', cmd: { type: 'PlaceReinforcements', placements: { a: 6 } } },
-    ]);
+    expect(full.effects).toEqual([{ type: 'command', cmd: { type: 'PlaceReinforcements', placements: { a: 6 } } }]);
     expect(mainButton(full.s, e)).toEqual({ label: 'Confirm', enabled: true });
   });
 
@@ -164,9 +173,7 @@ describe('placing', () => {
     r = run(c, [tap('a'), tap('a'), { type: 'toggleCapital' }, tap('b'), { type: 'confirm' }]);
     expect(r.s.capital).toBe('b');
     expect(r.s.staged).toEqual({ a: 2 }); // capital taps never add armies
-    expect(r.effects).toEqual([
-      { type: 'command', cmd: { type: 'SubmitSetup', placements: { a: 2 }, capital: 'b' } },
-    ]);
+    expect(r.effects).toEqual([{ type: 'command', cmd: { type: 'SubmitSetup', placements: { a: 2 }, capital: 'b' } }]);
   });
 
   it('toggleCapital is ignored outside capitals setup', () => {
@@ -191,9 +198,7 @@ describe('attack panel', () => {
     const s2 = run(e, [{ type: 'setDice', dice: 2 }], open).s;
     expect(s2.dice).toBe(2);
     const roll = reduce(s2, { type: 'roll' }, e);
-    expect(roll.effects).toEqual([
-      { type: 'command', cmd: { type: 'Attack', from: 'a', to: 'b', attackerDice: 2 } },
-    ]);
+    expect(roll.effects).toEqual([{ type: 'command', cmd: { type: 'Attack', from: 'a', to: 'b', attackerDice: 2 } }]);
     expect(contextOf(roll.state, e)).toBe('attack-panel');
     const blitz = reduce(s2, { type: 'blitz' }, e);
     expect(blitz.effects).toEqual([
@@ -237,12 +242,8 @@ describe('sliders', () => {
     expect(s.amount).toBe(2);
     s = run(e, [{ type: 'setAmount', value: 99 }], s).s;
     expect(s.amount).toBe(6);
-    expect(reduce(s, { type: 'enter' }, e).effects).toEqual([
-      { type: 'command', cmd: { type: 'Occupy', armies: 6 } },
-    ]);
-    expect(reduce(s, { type: 'main' }, e).effects).toEqual([
-      { type: 'command', cmd: { type: 'Occupy', armies: 6 } },
-    ]);
+    expect(reduce(s, { type: 'enter' }, e).effects).toEqual([{ type: 'command', cmd: { type: 'Occupy', armies: 6 } }]);
+    expect(reduce(s, { type: 'main' }, e).effects).toEqual([{ type: 'command', cmd: { type: 'Occupy', armies: 6 } }]);
   });
 
   it('occupy cannot be cancelled with Esc', () => {
@@ -290,7 +291,10 @@ describe('other modes', () => {
 });
 
 describe('keyboard adapter (SPEC 7.4 table)', () => {
-  const k = (key: string, extra: Partial<Record<'shiftKey' | 'ctrlKey' | 'altKey' | 'metaKey' | 'code', unknown>> = {}) => ({
+  const k = (
+    key: string,
+    extra: Partial<Record<'shiftKey' | 'ctrlKey' | 'altKey' | 'metaKey' | 'code', unknown>> = {},
+  ) => ({
     key,
     code: key === ' ' ? 'Space' : key,
     shiftKey: false,

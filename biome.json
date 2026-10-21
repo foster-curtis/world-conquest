@@ -7,7 +7,7 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "includes": ["**", "!apps/web/src/board"]
+    "includes": ["**", "!apps/web/src/board/layout.json", "!apps/web/src/board/board.svg"]
   },
   "formatter": {
     "enabled": true,

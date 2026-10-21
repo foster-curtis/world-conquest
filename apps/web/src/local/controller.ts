@@ -15,6 +15,7 @@ import {
   type PlayerCount,
   type PlayerView,
   type Result,
+  redactEvent,
   type SeatId,
   toPlayerView,
   type WinCondition,
@@ -49,13 +50,7 @@ export class LocalGame {
   private readonly rng: () => number;
   private readonly now: () => Date;
 
-  private constructor(
-    store: SaveStore,
-    meta: SaveMeta,
-    events: GameEvent[],
-    saved: number,
-    deps: ControllerDeps,
-  ) {
+  private constructor(store: SaveStore, meta: SaveMeta, events: GameEvent[], saved: number, deps: ControllerDeps) {
     this.store = store;
     this.id = meta.id;
     this.meta = meta;
@@ -123,8 +118,24 @@ export class LocalGame {
 
   // ---- reading
 
+  /** The raw log, for persistence and tests only. UI code uses visibleEvents / fullEvents. */
   get events(): readonly GameEvent[] {
     return this.log;
+  }
+
+  /** The log as the current viewer may see it (others' draws and hidden setups redacted, deck removed). */
+  visibleEvents(): GameEvent[] {
+    const viewer = this.viewer();
+    return this.log.flatMap((e) => {
+      const r = redactEvent(e, viewer);
+      return r ? [r] : [];
+    });
+  }
+
+  /** Everything, but only once the game is over (SPEC 8.2: replay reveals all). */
+  fullEvents(): GameEvent[] {
+    if (this.state.phase.kind !== 'game_over') throw new Error('the full log is only available after game over');
+    return [...this.log];
   }
 
   get settings() {
@@ -204,7 +215,12 @@ export class LocalGame {
       if (e.type === 'TurnStarted') this.turns++;
     }
     this.persist();
-    for (const l of this.listeners) l(r.value);
+    // Listeners (animations) see the events as the acting player sees them.
+    const shown = r.value.flatMap((e) => {
+      const x = redactEvent(e, seat);
+      return x ? [x] : [];
+    });
+    for (const l of this.listeners) l(shown);
     return r;
   }
 
