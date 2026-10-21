@@ -317,8 +317,8 @@ function chains(arcs: XY[][], used: Set<number>): { refs: number[]; closed: bool
  * is relaxed toward its neighbours, so corners at junctions round off too: where exactly two coasts meet a border,
  * the junction slides along the coastline; elsewhere it moves toward the mean of its neighbours. All chains ending at
  * a junction move with it, so shared borders stay identical. Where a smoothed chain would cross another (narrow
- * inlets, straits), it falls back to its unsmoothed shape (keeping the relaxed junctions). Returns how many chains
- * fell back.
+ * inlets, straits), its junctions first stop relaxing, and if that is not enough it keeps its unsmoothed shape.
+ * Returns how many chains stayed unsmoothed.
  */
 export function smoothArcs(s: TopoShapes, iterations: number): number {
   const used = new Set<number>();

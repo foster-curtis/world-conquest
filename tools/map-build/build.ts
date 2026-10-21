@@ -10,7 +10,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Resvg } from '@resvg/resvg-js';
 import mapshaper from 'mapshaper';
-import { type Layout, type Pt, parseBoard, runChecks, touchingPairs } from './checks.ts';
+import { type Layout, type Pt, parseBoard, runChecks, tapRadii, touchingPairs } from './checks.ts';
 import { loadClassic } from './mapdef.ts';
 import { crossings, dropIslands, fillInlets, properCross, type Ring, readTopo, ringOf, smoothArcs } from './style.ts';
 import { checkFold, compileWarp, type LonLat, type WarpConfig } from './warp.ts';
@@ -35,7 +35,6 @@ const MIN_ISLAND_AREA = 220; // board units^2; smaller detached parts are remove
 const SMOOTH_ITERATIONS = 3; // Chaikin passes per arc
 const NEEDLE_WIDTH = 7; // board units; one-territory land spikes thinner than this are cut off
 const INLET_GAP = 5; // board units; one-territory water inlets narrower than this (mouth and mean width) are filled
-const MIN_TAP_RADIUS = 15; // board units; every territory's anchor must sit this far inside its shape
 const FOLD_MIN_DET = 0.05; // the warp's Jacobian determinant must stay above this everywhere near land
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -111,7 +110,7 @@ const insideAny = (k: Bounds | Bounds[], x: number, y: number) =>
 function buildFeatures(a0: FC, a1: FC, assignments: { countries: Record<string, Entry> }, validIds: Set<string>) {
   const out: {
     type: 'Feature';
-    properties: { t: string; split?: { bounds: Bounds; to: string } };
+    properties: { t: string; splits?: { bounds: Bounds; to: string }[] };
     geometry: { type: 'Polygon'; coordinates: GRing[] };
   }[] = [];
   const problems: string[] = [];
@@ -148,13 +147,13 @@ function buildFeatures(a0: FC, a1: FC, assignments: { countries: Record<string, 
         )
       )
         continue;
-      const split = rule.split?.find(
+      const splits = rule.split?.filter(
         (s) => s.bounds[0] < maxX && s.bounds[2] > minX && s.bounds[1] < maxY && s.bounds[3] > minY,
       );
-      if (split) checkTo(split.to, 'split rule');
+      for (const s of splits ?? []) checkTo(s.to, 'split rule');
       out.push({
         type: 'Feature',
-        properties: split ? { t: dest, split } : { t: dest },
+        properties: splits?.length ? { t: dest, splits } : { t: dest },
         geometry: { type: 'Polygon', coordinates: projected },
       });
     }
@@ -201,27 +200,32 @@ function buildFeatures(a0: FC, a1: FC, assignments: { countries: Record<string, 
 type SplitFeature = ReturnType<typeof buildFeatures>['features'][number];
 /** Applies split rules: the part of a polygon inside the (projected) box goes to the split's territory. */
 async function applySplits(features: SplitFeature[]): Promise<unknown[]> {
+  type Piece = { type: 'Feature'; properties: { t: string }; geometry: { type: 'Polygon'; coordinates: GRing[] } };
   const out: unknown[] = [];
   for (const f of features) {
-    const s = f.properties.split;
-    if (!s) {
-      out.push(f);
-      continue;
+    let pieces: Piece[] = [{ ...f, properties: { t: f.properties.t } }];
+    for (const s of f.properties.splits ?? []) {
+      const [x0, y1] = project([s.bounds[0], s.bounds[1]]);
+      const [x1, y0] = project([s.bounds[2], s.bounds[3]]);
+      const next: Piece[] = [];
+      for (const p of pieces) {
+        const input = {
+          'in.json': JSON.stringify({ type: 'FeatureCollection', features: [{ ...p, properties: { k: 1 } }] }),
+        };
+        for (const [cmd, t] of [
+          [`-clip bbox=${x0},${y0},${x1},${y1}`, s.to],
+          [`-erase bbox=${x0},${y0},${x1},${y1}`, p.properties.t],
+        ] as [string, string][]) {
+          if (t === 'drop') continue;
+          const res = await mapshaper.applyCommands(`-i in.json ${cmd} -o out.json format=geojson`, input);
+          for (const g of (JSON.parse(String(res['out.json'])) as OutFC).features ?? [])
+            for (const poly of polygonsOf(g.geometry))
+              next.push({ type: 'Feature', properties: { t }, geometry: { type: 'Polygon', coordinates: poly } });
+        }
+      }
+      pieces = next;
     }
-    const [x0, y1] = project([s.bounds[0], s.bounds[1]]);
-    const [x1, y0] = project([s.bounds[2], s.bounds[3]]);
-    const input = {
-      'in.json': JSON.stringify({ type: 'FeatureCollection', features: [{ ...f, properties: { k: 1 } }] }),
-    };
-    for (const [cmd, t] of [
-      [`-clip bbox=${x0},${y0},${x1},${y1}`, s.to],
-      [`-erase bbox=${x0},${y0},${x1},${y1}`, f.properties.t],
-    ] as [string, string][]) {
-      const res = await mapshaper.applyCommands(`-i in.json ${cmd} -o out.json format=geojson`, input);
-      for (const g of (JSON.parse(String(res['out.json'])) as OutFC).features ?? [])
-        for (const poly of polygonsOf(g.geometry))
-          out.push({ type: 'Feature', properties: { t }, geometry: { type: 'Polygon', coordinates: poly } });
-    }
+    out.push(...pieces);
   }
   return out;
 }
@@ -576,9 +580,7 @@ async function main() {
   writeFileSync(resolve(here, 'preview.png'), png);
 
   // Tappability: how far each anchor sits inside its territory.
-  const tap = def.territories
-    .map((t) => [t, nearestOnRings(rings(t), anchor[t] as Pt).d] as [string, number])
-    .sort((x, y) => x[1] - y[1]);
+  const tap = tapRadii(board, layout); // checked against MIN_TAP_RADIUS in runChecks
   console.log(`board ${WIDTH}x${HEIGHT} (aspect ${(WIDTH / HEIGHT).toFixed(2)}), ${seaLinks.length} sea links`);
   console.log(`warp: min Jacobian determinant ${fold.minDet.toFixed(3)}`);
   console.log(
@@ -599,7 +601,6 @@ async function main() {
       seaLinks,
       board.groups.flatMap((g) => g.paths.flatMap((p) => p.rings)),
     ),
-    ...tap.filter(([, d]) => d < MIN_TAP_RADIUS).map(([t, d]) => `${t} is too small to tap (radius ${d.toFixed(1)})`),
   ];
   if (errs.length) {
     console.error(`CHECKS FAILED:\n  ${errs.join('\n  ')}`);

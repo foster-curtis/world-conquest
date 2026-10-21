@@ -83,6 +83,32 @@ export function touchingPairs(board: Board): Set<string> {
   return pairs;
 }
 
+/** Every territory's anchor must sit at least this far (board units) inside its own shape (§5.3 tappability). */
+export const MIN_TAP_RADIUS = 15;
+
+/** Distance from each territory's anchor to the nearest point of its outline, smallest first. */
+export function tapRadii(board: Board, layout: Layout): [string, number][] {
+  const out: [string, number][] = [];
+  for (const g of board.groups)
+    for (const p of g.paths) {
+      const a = layout.anchors[p.id];
+      if (!a) continue;
+      let best = Infinity;
+      for (const r of p.rings)
+        for (let i = 0; i < r.length; i++) {
+          const s = r[i] as Pt;
+          const e = r[(i + 1) % r.length] as Pt;
+          const vx = e[0] - s[0];
+          const vy = e[1] - s[1];
+          const len = vx * vx + vy * vy;
+          const t = len ? Math.max(0, Math.min(1, ((a[0] - s[0]) * vx + (a[1] - s[1]) * vy) / len)) : 0;
+          best = Math.min(best, Math.hypot(a[0] - s[0] - t * vx, a[1] - s[1] - t * vy));
+        }
+      out.push([p.id, best]);
+    }
+  return out.sort((x, y) => x[1] - y[1]);
+}
+
 /** Returns a list of human-readable problems; empty means every §5.3 check passes. */
 export function runChecks(def: MapDef, board: Board, layout: Layout): string[] {
   const errs: string[] = [];
@@ -109,6 +135,9 @@ export function runChecks(def: MapDef, board: Board, layout: Layout): string[] {
     else if (a[0] < 0 || a[0] > layout.width || a[1] < 0 || a[1] > layout.height)
       errs.push(`anchor for ${t} is off-board`);
   }
+
+  for (const [t, d] of tapRadii(board, layout))
+    if (d < MIN_TAP_RADIUS) errs.push(`${t} is too small to tap (anchor ${d.toFixed(1)} inside its shape)`);
 
   // Touching <-> adjacency.
   const touch = touchingPairs(board);

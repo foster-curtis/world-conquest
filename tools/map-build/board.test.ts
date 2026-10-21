@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { type Layout, parseBoard, runChecks, touchingPairs } from './checks.ts';
+import { type Layout, MIN_TAP_RADIUS, parseBoard, runChecks, tapRadii, touchingPairs } from './checks.ts';
 import { loadClassic } from './mapdef.ts';
 
 const dir = resolve(import.meta.dirname, '../../apps/web/src/board');
@@ -55,6 +55,11 @@ describe('board.svg + layout.json vs the classic map', () => {
     ])
       expect(touch.has(p), p).toBe(true);
     expect(touch.has('mongolia|yakutsk')).toBe(false);
+  });
+
+  it(`keeps every territory tappable (anchor >= ${MIN_TAP_RADIUS} units inside its shape)`, () => {
+    const smallest = tapRadii(board, layout)[0];
+    expect(smallest?.[1], smallest?.[0]).toBeGreaterThanOrEqual(MIN_TAP_RADIUS);
   });
 
   it('has an anchor for all 42 territories', () => {

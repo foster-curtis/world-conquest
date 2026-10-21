@@ -445,7 +445,10 @@
         "Alaska": {
           "to": "alaska",
           "parts": [{ "bounds": [-180, 40, -169, 75], "to": "drop" }, { "bounds": [150, 40, 180, 75], "to": "drop" }],
-          "split": [{ "bounds": [-139, 54, -129, 60.5], "to": "alberta" }]
+          "split": [
+            { "bounds": [-139, 54, -129, 60.5], "to": "alberta" },
+            { "bounds": [-168.5, 50, -156, 58.2], "to": "drop" }
+          ]
         },
         "Hawaii": "drop",
         "Washington": "western_us",
