@@ -327,7 +327,7 @@ Reply in 150 words or fewer: what was built, what was deferred, blockers, and th
 - [x] Schema, RLS, `append_events` (denormalized columns, outbox), cron jobs + seed
 - [x] `game` function (create, lookup, commands, views, replay, 426, system actor); transport types in `types.ts` + SPEC
 - [x] Email templates + `config.toml` auth URLs; `tests/integration` green on the local stack
-- [ ] Merged to `main`
+- [x] Merged to `main`
 
 **M5: Online UI**
 - [ ] `api.ts` (protocol/426), auth (link + code), profile name, lobby, `/g/:code` states, sharing
