@@ -334,7 +334,7 @@
     "KGZ": "afghanistan",
     "ARM": "ukraine",
     "DNK": {
-      "to": "scandinavia",
+      "to": "northern_europe",
       "keep": [7, 54, 16, 58]
     },
     "LBY": "egypt",
@@ -442,7 +442,11 @@
     "GIB": "drop",
     "USA": {
       "provinces": {
-        "Alaska": "alaska",
+        "Alaska": {
+          "to": "alaska",
+          "parts": [{ "bounds": [-180, 40, -169, 75], "to": "drop" }, { "bounds": [150, 40, 180, 75], "to": "drop" }],
+          "split": [{ "bounds": [-139, 54, -129, 60.5], "to": "alberta" }]
+        },
         "Hawaii": "drop",
         "Washington": "western_us",
         "Idaho": "western_us",

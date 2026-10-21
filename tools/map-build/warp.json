@@ -28,8 +28,7 @@
             [115, 27],
             [104, 14],
             [125, 44],
-            [65, 40],
-            [138, 37]
+            [65, 40]
           ]
         },
         {
@@ -106,7 +105,8 @@
     { "type": "lens", "name": "europe", "center": [14, 50], "radius": 260, "scale": 1.45 },
     { "type": "lens", "name": "iceland", "center": [-19, 65], "radius": 80, "scale": 2.2 },
     { "type": "lens", "name": "great_britain", "center": [-3, 54], "radius": 80, "scale": 2.0 },
-    { "type": "lens", "name": "japan", "center": [137, 37], "radius": 120, "scale": 2.4 },
+    { "type": "lens", "name": "japan", "center": [139, 37], "radius": 200, "scale": 2.0 },
+    { "type": "lens", "name": "alaska_peninsula", "center": [-158, 57], "radius": 70, "scale": 0.6 },
     { "type": "lens", "name": "irkutsk", "center": [108, 56], "radius": 110, "scale": 1.3 },
     { "type": "lens", "name": "siam", "center": [102, 15], "radius": 90, "scale": 1.35 },
     { "type": "lens", "name": "new_guinea", "center": [143, -5.5], "radius": 90, "scale": 1.7 },
