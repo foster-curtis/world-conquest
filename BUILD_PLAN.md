@@ -339,7 +339,7 @@ Reply in 150 words or fewer: what was built, what was deferred, blockers, and th
 - [x] CI `deploy` job, `vercel.json`, keep-alive workflow, handoff secret names updated
 - [x] Merged to `main`
 
-- [ ] **Final handoff** list printed for the user
+- [x] **Final handoff** list printed for the user
 
 ---
 
