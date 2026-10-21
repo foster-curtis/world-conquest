@@ -320,7 +320,7 @@ Reply in 150 words or fewer: what was built, what was deferred, blockers, and th
 - [x] Home, local setup, pass-the-device, IndexedDB save/resume
 - [x] Board, selection machine + pointer/keyboard adapters, shortcut overlay, tip
 - [x] HUD, dice/animations, local replay + stats; headless full-game test
-- [ ] Merged to `main`
+- [x] Merged to `main`
 - [ ] **User play-tested and approved**
 
 **M4: Backend**
