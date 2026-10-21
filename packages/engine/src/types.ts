@@ -380,3 +380,85 @@ export interface ReplayResponse {
   settings: GameSettings;
   events: { seq: number; event: GameEvent }[];
 }
+
+// ---------- HTTP API of the `game` edge function (transport) ------------------
+// Base URL: `<SUPABASE_URL>/functions/v1/game`. Every client request sends `Authorization: Bearer <user JWT>`
+// and PROTOCOL_HEADER; a missing or different protocol gets HTTP 426 with code PROTOCOL_MISMATCH.
+// `/system` is for the cron fallback only: it needs SYSTEM_SECRET_HEADER instead and skips the protocol check.
+
+/** Request header carrying PROTOCOL_VERSION. */
+export const PROTOCOL_HEADER = 'x-wc-protocol';
+/** Request header carrying the system-actor secret (cron → function). */
+export const SYSTEM_SECRET_HEADER = 'x-wc-system-secret';
+
+/** Host creates an online game and joins it as seat 0. `mode` is always 'online'. */
+export interface CreateGameRequest {
+  settings?: Partial<Omit<GameSettings, 'mode'>>;
+  color?: Color;
+}
+export interface CreateGameResponse {
+  gameId: string;
+  joinCode: string;
+  version: number;
+}
+
+/** What anyone signed in may learn from a join code (the join page; non-members can't read `games`). */
+export interface JoinLookupResponse {
+  gameId: string;
+  joinCode: string;
+  phase: Phase['kind'];
+  isMember: boolean;
+  players: number; // human seats taken
+  maxSeats: PlayerCount;
+  hostName: string | null;
+}
+
+/** displayName / userId on JoinGame are always overwritten by the function (profile + auth).
+ *  expectedVersion: optional; when given and the game has moved on, the command fails with STALE_VERSION
+ *  instead of being re-decided against the newer state. */
+export interface CommandRequest {
+  command: Command;
+  expectedVersion?: number;
+}
+export interface CommandResponse {
+  version: number; // state version after the command; fetch the view with ?since= to see the events
+}
+
+/** Cron fallback: 'timeout' sends ClaimTimeout for the current deadline, 'expire' cancels a stale lobby. */
+export interface SystemRequest {
+  gameId: string;
+  action: 'timeout' | 'expire';
+}
+
+/** Realtime: after every write the function broadcasts on channel `game:<gameId>`, event 'version'. */
+export const GAME_CHANNEL_PREFIX = 'game:';
+export const VERSION_BROADCAST_EVENT = 'version';
+export interface VersionPing {
+  version: number;
+}
+
+export type ApiErrorCode =
+  | RejectionCode
+  | 'BAD_REQUEST' // 400: malformed body, route or query
+  | 'NO_PROFILE' // 400: the caller has no `profiles` row (display name) yet
+  | 'UNAUTHORIZED' // 401: missing/invalid user JWT or system secret
+  | 'NOT_MEMBER' // 403: the caller holds no seat in this game
+  | 'NOT_FOUND' // 404: unknown game, join code or route
+  | 'NOT_FINISHED' // 409: replay before game_over
+  | 'PROTOCOL_MISMATCH' // 426: reload the client
+  | 'INTERNAL'; // 500
+
+/** Error body for every non-2xx response. RejectionCodes come back as 422, except STALE_VERSION as 409. */
+export interface ApiError {
+  error: { code: ApiErrorCode; message: string };
+}
+
+/** Route table (paths relative to the function base URL). */
+export type ApiRoute =
+  | { method: 'POST'; path: '/games'; body: CreateGameRequest; response: CreateGameResponse }
+  | { method: 'GET'; path: `/join/${string}`; body: null; response: JoinLookupResponse }
+  | { method: 'POST'; path: `/games/${string}/commands`; body: CommandRequest; response: CommandResponse }
+  /** `?since=<version>` optional; see ViewResponse.events. */
+  | { method: 'GET'; path: `/games/${string}/view`; body: null; response: ViewResponse }
+  | { method: 'GET'; path: `/games/${string}/replay`; body: null; response: ReplayResponse }
+  | { method: 'POST'; path: '/system'; body: SystemRequest; response: CommandResponse };

@@ -1,0 +1,18 @@
+{
+  "name": "@wc/integration",
+  "private": true,
+  "type": "module",
+  "description": "Integration tests against the local Supabase stack (needs Docker: `npx supabase start`). Not part of `pnpm test`.",
+  "scripts": {
+    "integration": "vitest run",
+    "typecheck": "tsc"
+  },
+  "devDependencies": {
+    "@supabase/supabase-js": "^2.118.0",
+    "@types/node": "^24.0.0",
+    "@wc/engine": "workspace:*",
+    "postgres": "^3.4.7",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
+  }
+}
