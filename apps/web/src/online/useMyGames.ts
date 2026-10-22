@@ -4,9 +4,11 @@ import type { AuthState } from './auth/useSession.ts';
 import { fetchMyGames, type MyGames, tabTitle, waitingOnYou } from './mygames.ts';
 import { supabase } from './supabase.ts';
 
+/** `title` replaces the usual tab title (the 404 page uses it); this hook owns `document.title`. */
 export function useMyGames(
   auth: AuthState,
   active: boolean,
+  title?: string,
 ): { games: MyGames | null; error: string | null; refresh: () => void } {
   const [games, setGames] = useState<MyGames | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -42,8 +44,8 @@ export function useMyGames(
 
   const count = games ? waitingOnYou(games) : 0;
   useEffect(() => {
-    document.title = tabTitle(count);
-  }, [count]);
+    document.title = title ?? tabTitle(count);
+  }, [title, count]);
 
   return { games, error, refresh };
 }

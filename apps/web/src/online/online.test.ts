@@ -229,8 +229,9 @@ describe('/g/:code routing states', () => {
     expect(parseRoute('/g/k7qm2x')).toEqual({ kind: 'game', code: 'K7QM2X' });
     expect(parseRoute('/g/K7QM2X/replay')).toEqual({ kind: 'replay', code: 'K7QM2X' });
     expect(parseRoute('/g/K7QM2X/stats/')).toEqual({ kind: 'stats', code: 'K7QM2X' });
-    expect(parseRoute('/g/O0O0O0')).toEqual({ kind: 'home' }); // look-alike characters are not in the alphabet
-    expect(parseRoute('/elsewhere')).toEqual({ kind: 'home' });
+    expect(parseRoute('/g/O0O0O0')).toEqual({ kind: 'notfound' }); // look-alike characters are not in the alphabet
+    expect(parseRoute('/g/%E0%A4%A')).toEqual({ kind: 'notfound' }); // malformed escape, must not throw
+    expect(parseRoute('/elsewhere')).toEqual({ kind: 'notfound' });
     expect(codeFromInput('https://world-conquest.fostercurtis.dev/g/K7QM2X')).toBe('K7QM2X');
     expect(codeFromInput(' k7qm2x ')).toBe('K7QM2X');
     expect(codeFromInput('nope')).toBeNull();

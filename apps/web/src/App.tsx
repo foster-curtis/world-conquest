@@ -6,6 +6,7 @@ import { LocalGame as Local, type LocalGame, type PlayerInput } from './local/co
 import { GameScreen } from './local/GameScreen.tsx';
 import { SetupScreen } from './local/SetupScreen.tsx';
 import { openStore, type SaveMeta, type SaveStore } from './local/store.ts';
+import { NotFound } from './notfound/NotFound.tsx';
 import { NamePrompt, SignIn } from './online/auth/SignIn.tsx';
 import { useSession } from './online/auth/useSession.ts';
 import { CodePage } from './online/game/CodePage.tsx';
@@ -33,7 +34,7 @@ export function App() {
   const [route, setRoute] = useState<Route>(() => parseRoute(window.location.pathname));
   const [outdated, setOutdated] = useState(false);
   const auth = useSession();
-  const my = useMyGames(auth, true);
+  const my = useMyGames(auth, true, route.kind === 'notfound' ? 'Page not found' : undefined);
 
   useEffect(() => {
     const onPop = () => setRoute(parseRoute(window.location.pathname));
@@ -107,7 +108,9 @@ export function App() {
 
   if (route.kind !== 'home') {
     const page =
-      route.kind === 'game' ? (
+      route.kind === 'notfound' ? (
+        <NotFound navigate={navigate} />
+      ) : route.kind === 'game' ? (
         <CodePage code={route.code} auth={auth} navigate={navigate} />
       ) : (
         <ReplayPage code={route.code} auth={auth} navigate={navigate} stats={route.kind === 'stats'} />

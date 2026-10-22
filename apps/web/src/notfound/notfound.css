@@ -1,0 +1,201 @@
+/* 404 page (NotFound.tsx). Breakpoints follow the fostercurtis.dev original: sm = 640px, lg = 1024px. */
+.not-found {
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 0 var(--space-4) 48px;
+}
+.not-found-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-8);
+  padding-top: 40px;
+  text-align: center;
+}
+.signal-lost {
+  flex-shrink: 0;
+}
+.not-found-mark {
+  display: block;
+  width: clamp(83px, 11vw, 143px);
+  height: clamp(83px, 11vw, 143px);
+}
+.not-found-mark .mark-tile {
+  fill: var(--brand-ink);
+}
+.not-found-mark .mark-cell {
+  fill: var(--land);
+}
+.not-found-mark .mark-amber {
+  fill: var(--brand-amber);
+}
+.not-found-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+.not-found-eyebrow {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: calc(1 / 0.75);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.not-found h1 {
+  margin: 0;
+  font-size: 1.875rem;
+  line-height: 1.25;
+}
+.not-found-lede {
+  margin: 0;
+  max-width: 42rem;
+  font-size: 1.125rem;
+  line-height: calc(1.75 / 1.125);
+  color: var(--muted);
+  text-wrap: pretty;
+}
+.not-found-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-3);
+}
+
+.not-found .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 2.75rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  line-height: calc(1.25 / 0.875);
+  font-weight: 600;
+  text-decoration: none;
+  transition-property: color, background-color, border-color, outline-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+.not-found .btn:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--accent);
+}
+.not-found .btn-primary {
+  background: var(--accent);
+  color: var(--accent-on);
+}
+.not-found .btn-secondary {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--foreground);
+}
+@media (hover: hover) {
+  .not-found .btn-primary:hover {
+    background: color-mix(in oklab, var(--accent) 90%, transparent);
+  }
+  .not-found .btn-secondary:hover {
+    background: var(--surface-strong);
+  }
+}
+
+@media (min-width: 640px) {
+  .not-found {
+    padding: 0 var(--space-6) 64px;
+  }
+  .not-found-head {
+    padding-top: 56px;
+  }
+  .not-found h1 {
+    font-size: 2.25rem;
+  }
+  .not-found-actions {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+@media (min-width: 1024px) {
+  .not-found-head {
+    padding-top: 80px;
+  }
+  .not-found h1 {
+    font-size: 3rem;
+  }
+}
+
+/* "Signal lost": still most of the time, then every 3s a burst of instant jumps while the inner part flickers. */
+@keyframes signal-lost-jump {
+  0%,
+  70% {
+    transform: translate(0, 0);
+  }
+  74% {
+    transform: translate(6%, -5%);
+  }
+  76% {
+    transform: translate(-5%, 4%);
+  }
+  78% {
+    transform: translate(0, 0);
+  }
+  86% {
+    transform: translate(4%, 5%);
+  }
+  88% {
+    transform: translate(-4%, -4%);
+  }
+  90%,
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
+@keyframes signal-lost-flicker {
+  0%,
+  71% {
+    opacity: 1;
+  }
+  74% {
+    opacity: 0.15;
+  }
+  77%,
+  84% {
+    opacity: 1;
+  }
+  87% {
+    opacity: 0.2;
+  }
+  90%,
+  100% {
+    opacity: 1;
+  }
+}
+
+/* Percentages are of each part's own box (fill-box), so the big ring moves further than the small inner part. */
+.signal-lost .brand-mark-ring,
+.signal-lost .brand-mark-inner {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.signal-lost .brand-mark-ring {
+  animation: signal-lost-jump 3s steps(1) infinite;
+}
+
+.signal-lost .brand-mark-inner {
+  animation:
+    signal-lost-jump 3s steps(1) infinite,
+    signal-lost-flicker 3s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .signal-lost .brand-mark-ring,
+  .signal-lost .brand-mark-inner {
+    animation: none;
+  }
+}
