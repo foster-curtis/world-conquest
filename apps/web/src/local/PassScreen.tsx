@@ -2,6 +2,7 @@
 // Deliberately renders no game information, so cards and hidden setup placements stay private.
 import type { Color } from '@wc/engine';
 import { COLOR_HEX, COLOR_INK } from '../board/colors.ts';
+import { HomeLink } from '../home/Brand.tsx';
 
 export function PassScreen(props: {
   name: string;
@@ -25,9 +26,7 @@ export function PassScreen(props: {
         <button type="button" className="primary big" onClick={props.onReady}>
           I am {props.name}
         </button>
-        <button type="button" className="ghost" onClick={props.onHome}>
-          Save and go home
-        </button>
+        <HomeLink onClick={props.onHome} label="Save and go home" />
       </div>
     </div>
   );

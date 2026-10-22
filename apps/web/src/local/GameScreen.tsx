@@ -8,6 +8,7 @@ import { type AnimStep, effectiveSpeed, lastRollResult, planAnimation, SPEEDS, t
 import { DiceOverlay } from '../dice/DiceOverlay.tsx';
 import { loadSpeed, prefersReducedMotion, saveSpeed } from '../dice/settings.ts';
 import type { GameSource } from '../gameSource.ts';
+import { HomeLink } from '../home/Brand.tsx';
 import { ActionPanel } from '../hud/ActionPanel.tsx';
 import type { CardSet } from '../hud/cards.ts';
 import { buildFeed } from '../hud/feed.ts';
@@ -282,9 +283,7 @@ export function GameScreen(props: GameScreenProps) {
   return (
     <div className={`game${drawer ? ' drawer-open' : ''}${sideClosed ? ' side-closed' : ''}`}>
       <header className="topbar">
-        <button type="button" className="ghost" onClick={props.onHome}>
-          ← Home
-        </button>
+        <HomeLink onClick={props.onHome} />
         <span className="who">
           {over ? (
             'Game over'
@@ -433,9 +432,7 @@ export function GameScreen(props: GameScreenProps) {
               <button type="button" onClick={props.onStats}>
                 Stats
               </button>
-              <button type="button" className="ghost" onClick={props.onHome}>
-                Home
-              </button>
+              <HomeLink onClick={props.onHome} />
             </div>
           </section>
         </div>

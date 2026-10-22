@@ -162,11 +162,27 @@ kbd {
   margin: 0;
   flex: 1;
 }
-.home-link {
+/* Home and Back: a regular button with an icon, so navigation reads as a control, not loose text. */
+.nav-button {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  padding: 0 var(--space-2);
+  padding: 0 var(--space-3) 0 var(--space-2);
+  flex: none;
+}
+/* The game bar is tight on phones: icon only there (the button keeps its accessible name). */
+@media (max-width: 480px) {
+  .topbar .nav-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .topbar .nav-button {
+    padding: 0 var(--space-2);
+  }
 }
 .screen section {
   background: var(--surface);
@@ -196,7 +212,7 @@ kbd {
 }
 
 /* ---- home */
-.topbar {
+.home-top {
   display: flex;
   justify-content: flex-end;
   align-items: center;

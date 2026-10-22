@@ -2,6 +2,7 @@
 import type { Color, SeatId } from '@wc/engine';
 import { useMemo } from 'react';
 import { COLOR_HEX } from '../board/colors.ts';
+import { BackButton } from '../home/Brand.tsx';
 import { buildFrames, type ReplayInput } from '../replay/frames.ts';
 import { computeStats, type SeriesPoint, type Stats as StatsData } from './compute.ts';
 
@@ -149,9 +150,7 @@ export function StatsScreen(props: { input: ReplayInput; onClose: () => void; on
   return (
     <div className="screen statscreen">
       <header className="screen-head">
-        <button type="button" className="ghost" onClick={props.onClose}>
-          ← Back
-        </button>
+        <BackButton onClick={props.onClose} />
         <h1>Game stats</h1>
         {props.onReplay && (
           <button type="button" onClick={props.onReplay}>

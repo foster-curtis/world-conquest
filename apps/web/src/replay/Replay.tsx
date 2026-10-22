@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Board, type Fx } from '../board/Board.tsx';
 import { COLOR_HEX } from '../board/colors.ts';
 import { makeDisplay, makeTooltip } from '../board/display.ts';
+import { BackButton } from '../home/Brand.tsx';
 import { buildFeed } from '../hud/feed.ts';
 import { buildFrames, type ReplayInput } from './frames.ts';
 
@@ -78,9 +79,7 @@ export function ReplayScreen(props: { input: ReplayInput; onClose: () => void; o
   return (
     <div className="game replay">
       <header className="topbar">
-        <button type="button" className="ghost" onClick={props.onClose}>
-          ← Back
-        </button>
+        <BackButton onClick={props.onClose} />
         <span className="who">Replay</span>
         <span className="grow" />
         {props.onStats && (

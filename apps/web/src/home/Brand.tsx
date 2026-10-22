@@ -7,12 +7,24 @@ export function Mark(props: { size: number }) {
   return <img className="mark" src={src} width={props.size} height={props.size} alt="" />;
 }
 
-/** Replaces "← Home" in screen headers: the mark plus a label, so it still reads as navigation. */
+/** Home button for screen headers and the game top bar: the mark is its icon. */
 export function HomeLink(props: { onClick: () => void; label?: string }) {
   return (
-    <button type="button" className="ghost home-link" onClick={props.onClick}>
-      <Mark size={24} />
-      {props.label ?? 'Home'}
+    <button type="button" className="nav-button" onClick={props.onClick}>
+      <Mark size={20} />
+      <span className="nav-label">{props.label ?? 'Home'}</span>
+    </button>
+  );
+}
+
+/** Back button (replay, stats): same shape as HomeLink, with a chevron. */
+export function BackButton(props: { onClick: () => void; label?: string }) {
+  return (
+    <button type="button" className="nav-button" onClick={props.onClick}>
+      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+        <path d="M10 3 5 8l5 5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      </svg>
+      <span className="nav-label">{props.label ?? 'Back'}</span>
     </button>
   );
 }

@@ -31,7 +31,7 @@ export function Home(props: {
   const amber = props.onlineMove ? null : latest ? 'resume' : 'new';
   return (
     <div className="screen home">
-      {props.account && <div className="topbar">{props.account}</div>}
+      {props.account && <div className="home-top">{props.account}</div>}
       <header className="hero">
         <Mark size={56} />
         <div>
