@@ -317,7 +317,7 @@ export function GameScreen(props: GameScreenProps) {
           </select>
         </label>
         {!over && (
-          <button type="button" className="ghost" onClick={resign}>
+          <button type="button" className="danger" onClick={resign}>
             Resign
           </button>
         )}
@@ -362,6 +362,7 @@ export function GameScreen(props: GameScreenProps) {
           targets={targets}
           fx={fx}
           interactive={!locked && !over && env.mode !== 'none' && env.mode !== 'trade'}
+          attack={env.mode === 'attack'}
           onAction={send}
           tooltip={tooltip}
           onFocusChange={setBoardFocused}

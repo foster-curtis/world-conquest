@@ -296,8 +296,8 @@ describe('My games', () => {
     settings: defaultSettings('online'),
     updated_at: '2026-01-01T00:00:00Z',
     game_seats: [
-      { seat: 0, user_id: 'me', display_name: 'Me', color: 'red', kind: 'human', status: 'active' },
-      { seat: 1, user_id: 'you', display_name: 'You', color: 'blue', kind: 'human', status: 'active' },
+      { seat: 0, user_id: 'me', display_name: 'Me', color: 'crimson', kind: 'human', status: 'active' },
+      { seat: 1, user_id: 'you', display_name: 'You', color: 'cobalt', kind: 'human', status: 'active' },
     ],
     ...patch,
   });

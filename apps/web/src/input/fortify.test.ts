@@ -18,7 +18,7 @@ function mulberry(seed: number) {
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
-const COLORS: Color[] = ['red', 'blue', 'green'];
+const COLORS: Color[] = ['crimson', 'cobalt', 'jade'];
 const players = [0, 1, 2].map((i) => ({ name: `P${i + 1}`, color: COLORS[i] }));
 
 function fortifyMove(g: LocalGame, view: PlayerView, me: number) {

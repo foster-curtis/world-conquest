@@ -1,4 +1,45 @@
-<p>Your World Conquest sign-in code:</p>
-<p style="font-size:24px;font-weight:bold;letter-spacing:4px">{{ .Token }}</p>
-<p>Or sign in with this link: <a href="{{ .ConfirmationURL }}">Sign in to World Conquest</a></p>
-<p>If you didn't ask for this, you can ignore this email.</p>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="supported-color-schemes" content="dark">
+<title>World Conquest</title>
+</head>
+<body style="margin:0;padding:0;background-color:#14161a;">
+<!-- Brand: ink #14161a ground, surface #1a1d23 card, amber #e8a33d for the one action. Inline styles only; email clients strip <style> and CSS variables. -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#14161a" style="background-color:#14161a;">
+  <tr>
+    <td align="center" style="padding:32px 16px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:480px;">
+        <tr>
+          <td style="padding:0 0 24px 0;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+              <td style="vertical-align:middle;"><img src="{{ .SiteURL }}/brand/email-mark.png" width="32" height="32" alt="" style="display:block;border:0;"></td>
+              <td style="vertical-align:middle;padding-left:10px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;font-weight:600;letter-spacing:-0.4px;color:#ffffff;">World Conquest</td>
+            </tr></table>
+          </td>
+        </tr>
+        <tr>
+          <td bgcolor="#1a1d23" style="background-color:#1a1d23;border:1px solid #2e333c;border-radius:10px;padding:32px 24px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#ffffff;">
+            <p style="margin:0 0 8px 0;font-size:22px;font-weight:600;letter-spacing:-0.5px;line-height:1.25;color:#ffffff;">Your sign-in code</p>
+            <p style="margin:0 0 24px 0;font-size:15px;line-height:22px;color:#9aa1ad;">Enter this code in the game, or use the button below.</p>
+            <p style="margin:0 0 24px 0;padding:16px 0;text-align:center;background-color:#22262e;border-radius:6px;font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:28px;font-weight:600;letter-spacing:6px;color:#ffffff;">{{ .Token }}</p>
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 24px 0;"><tr>
+              <td bgcolor="#e8a33d" style="background-color:#e8a33d;border-radius:6px;">
+                <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:11px 18px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;font-weight:600;color:#14161a;text-decoration:none;">Sign in to World Conquest</a>
+              </td>
+            </tr></table>
+            <p style="margin:0;font-size:13px;line-height:18px;color:#9aa1ad;">If you didn&#39;t ask for this, you can ignore this email.</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:16px 4px 0 4px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:18px;color:#9aa1ad;">world-conquest.fostercurtis.dev</td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

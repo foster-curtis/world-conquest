@@ -8,9 +8,9 @@ describe('compactStrip', () => {
     const g = await LocalGame.create(
       memoryStore(),
       [
-        { name: 'Ana', color: 'red' },
-        { name: 'Ben', color: 'blue' },
-        { name: 'Cy', color: 'green' },
+        { name: 'Ana', color: 'crimson' },
+        { name: 'Ben', color: 'cobalt' },
+        { name: 'Cy', color: 'jade' },
       ],
       'classic',
     );

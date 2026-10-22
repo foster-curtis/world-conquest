@@ -39,12 +39,21 @@ export interface BoardProps {
   tooltip: (id: TerritoryId) => string;
   boardRef?: React.RefObject<HTMLDivElement | null>;
   onFocusChange?: (focused: boolean) => void;
+  /** Targets are attack targets (danger stroke) rather than fortify destinations. */
+  attack?: boolean;
 }
 
 type Mark = 'none' | 'candidate' | 'target' | 'source' | 'dim';
 
+/** Unowned land and its army count come from brand tokens; owned fills mirror them in colors.ts. */
+const LAND = 'var(--land)';
+const LAND_ON = 'var(--land-on)';
+
+const fillOf = (color: Color | null) => (color ? COLOR_HEX[color] : LAND);
+
+// Colors go through `style`, not SVG attributes, so token values (var()) resolve.
 const Shape = memo(function Shape({ id, d, fill, mark }: { id: string; d: string; fill: string; mark: Mark }) {
-  return <path data-t={id} className={`shape ${mark}`} d={d} fill={fill} />;
+  return <path data-t={id} className={`shape ${mark}`} d={d} style={{ fill }} />;
 });
 
 const Badge = memo(function Badge(props: {
@@ -56,8 +65,8 @@ const Badge = memo(function Badge(props: {
   focused: boolean;
 }) {
   const { id, x, y, display: t, mark, focused } = props;
-  const fill = t.color ? COLOR_HEX[t.color] : '#e8edf2';
-  const ink = t.color ? COLOR_INK[t.color] : '#1c1c1c';
+  const fill = fillOf(t.color);
+  const ink = t.color ? COLOR_INK[t.color] : LAND_ON;
   const shown = t.armies === null ? '' : String(t.armies + t.staged);
   return (
     // biome-ignore lint/a11y/useSemanticElements: an SVG group cannot be a <button>
@@ -72,21 +81,21 @@ const Badge = memo(function Badge(props: {
       {/* 44 px touch target (SPEC 7.2) */}
       <circle className="hit" r={22} />
       <circle className="ring" r={19} />
-      <circle className="disc" r={15} fill="#fff" stroke={fill} strokeWidth={3} />
-      <text className="count" textAnchor="middle" dominantBaseline="central" y={1}>
+      <circle className="disc" r={15} style={{ fill }} />
+      <text className="count" textAnchor="middle" dominantBaseline="central" y={1} style={{ fill: ink }}>
         {shown}
       </text>
       {t.color && (
         <g transform="translate(-13 -13)">
-          <circle r={8} fill={fill} stroke="#fff" strokeWidth={1.5} />
-          <text className="initial" textAnchor="middle" dominantBaseline="central" fill={ink}>
+          <circle className="chip" r={8} style={{ stroke: fill }} />
+          <text className="initial" textAnchor="middle" dominantBaseline="central">
             {t.initial}
           </text>
         </g>
       )}
       {t.staged > 0 && (
         <g transform="translate(14 -13)">
-          <rect x={-11} y={-8} width={22} height={16} rx={8} fill="#1f2937" />
+          <rect className="staged-chip" x={-11} y={-8} width={22} height={16} rx={8} />
           <text className="staged" textAnchor="middle" dominantBaseline="central">
             +{t.staged}
           </text>
@@ -305,9 +314,7 @@ export function Board(props: BoardProps) {
     () =>
       geometry.paths.map((p) => {
         const t = display(p.id);
-        return (
-          <Shape key={p.id} id={p.id} d={p.d} fill={t.color ? COLOR_HEX[t.color] : '#dfe5ea'} mark={markOf(p.id)} />
-        );
+        return <Shape key={p.id} id={p.id} d={p.d} fill={fillOf(t.color)} mark={markOf(p.id)} />;
       }),
     // eslint-disable-next-line
     [displayVersion, source, target, candidateSet, targetSet],
@@ -343,7 +350,7 @@ export function Board(props: BoardProps) {
   const inv = 1 / cam.s;
   return (
     <div
-      className="board"
+      className={`board${props.attack ? ' attacking' : ''}`}
       ref={holder}
       role="application"
       aria-label="World map"

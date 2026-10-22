@@ -113,7 +113,7 @@ export function ReplayScreen(props: { input: ReplayInput; onClose: () => void; o
               <li key={s.seat} className={state.phase.kind === 'turn' && state.phase.seat === s.seat ? 'turn' : ''}>
                 <span className="dot" style={{ background: COLOR_HEX[s.color] }} />
                 <span className="pname">{s.displayName}</span>
-                <span className="pstats" title="Cards in hand">
+                <span className="pstats num" title="Cards in hand">
                   {s.hand.length} cards
                 </span>
                 <small className="hand">{describeHand(state, s.hand)}</small>
@@ -177,7 +177,7 @@ export function ReplayScreen(props: { input: ReplayInput; onClose: () => void; o
             setIdx(Number(e.target.value));
           }}
         />
-        <span className="count">
+        <span className="count num">
           {idx}/{total}
         </span>
         <label className="speed">

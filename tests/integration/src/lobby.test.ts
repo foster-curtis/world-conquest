@@ -8,7 +8,7 @@ describe('lobby through the function', () => {
     const bo = await newUser('Bo');
     const cy = await newUser('Cy');
 
-    const created = await createGame(host, { settings: { maxSeats: 3 }, color: 'blue' });
+    const created = await createGame(host, { settings: { maxSeats: 3 }, color: 'cobalt' });
     expect(created.joinCode).toMatch(/^[2-9A-HJKMNP-Z]{6}$/);
     expect(created.version).toBe(1);
     const { gameId } = created;
@@ -31,25 +31,25 @@ describe('lobby through the function', () => {
     await must(bo, gameId, { type: 'JoinGame', displayName: 'Mallory', userId: host.id } as never);
     let { view } = await viewOf(host, gameId);
     expect(view.seats.map((s) => [s.seat, s.displayName, s.color, s.userId])).toEqual([
-      [0, 'Ada', 'blue', host.id],
-      [1, 'Bo', 'red', bo.id],
+      [0, 'Ada', 'cobalt', host.id],
+      [1, 'Bo', 'crimson', bo.id],
     ]);
     expect((await send(bo, gameId, { type: 'JoinGame', displayName: 'x' })).body).toMatchObject({
       error: { code: 'ALREADY_JOINED' },
     });
 
     // colors
-    expect((await send(cy, gameId, { type: 'JoinGame', displayName: 'x', color: 'blue' })).body).toMatchObject({
+    expect((await send(cy, gameId, { type: 'JoinGame', displayName: 'x', color: 'cobalt' })).body).toMatchObject({
       error: { code: 'COLOR_TAKEN' },
     });
-    await join(cy, gameId, 'green');
-    const taken = await send(bo, gameId, { type: 'ChangeColor', color: 'green' });
+    await join(cy, gameId, 'jade');
+    const taken = await send(bo, gameId, { type: 'ChangeColor', color: 'jade' });
     expect(taken.status).toBe(422);
     expect((taken.body as ApiError).error.code).toBe('COLOR_TAKEN');
     expect((await send(bo, gameId, { type: 'ChangeColor', color: 'gray' })).body).toMatchObject({
       error: { code: 'COLOR_TAKEN' },
     });
-    await must(bo, gameId, { type: 'ChangeColor', color: 'purple' });
+    await must(bo, gameId, { type: 'ChangeColor', color: 'bone' });
 
     // a fourth player can't join a 3-seat game
     const dee = await newUser('Dee');

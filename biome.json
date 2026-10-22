@@ -7,7 +7,12 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "includes": ["**", "!apps/web/src/board/layout.json", "!apps/web/src/board/board.svg"]
+    "includes": [
+      "**",
+      "!apps/web/src/board/layout.json",
+      "!apps/web/src/board/board.svg",
+      "!apps/web/public/brand/*.svg"
+    ]
   },
   "formatter": {
     "enabled": true,

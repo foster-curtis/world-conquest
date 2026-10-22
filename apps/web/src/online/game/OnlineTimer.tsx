@@ -29,7 +29,7 @@ export function OnlineTimer({ game, view }: { game: OnlineGame; view: PlayerView
   const skip = canSkip(view, info, now);
   return (
     <span className="timer" role="timer" aria-label={info.label}>
-      {info.label}: <b>{remaining > 0 ? formatRemaining(remaining) : '0:00'}</b>
+      {info.label}: <b className="num">{remaining > 0 ? formatRemaining(remaining) : '0:00'}</b>
       {skip && (
         <button
           type="button"

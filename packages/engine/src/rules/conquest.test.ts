@@ -10,7 +10,7 @@ const seat = (n: number, extra: Partial<Seat> = {}): Seat => ({
   status: 'active',
   userId: null,
   displayName: `P${n}`,
-  color: 'red',
+  color: 'crimson',
   turnOrder: n,
   consecutiveStrikes: 0,
   hand: [],

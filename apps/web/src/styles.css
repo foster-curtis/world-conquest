@@ -1,18 +1,6 @@
+/* Colors, fonts and radii come from styles/brand.css (imported first in main.tsx). */
 :root {
-  --ink: #1f2937;
-  --muted: #6b7280;
-  --bg: #eef2f6;
-  --card: #fff;
-  --line: #d5dce4;
-  --ocean: #b8cde0;
-  --accent: #2563eb;
-  --danger: #b91c1c;
-  --warn-bg: #fef3c7;
-  --radius: 10px;
   --bottom-h: 64px;
-  color-scheme: light;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  color: var(--ink);
 }
 
 * {
@@ -24,31 +12,43 @@ body,
 #root {
   margin: 0;
   height: 100%;
-  background: var(--bg);
+  background: var(--background);
 }
 
 button {
   font: inherit;
+  font-size: 14px;
+  font-weight: 600;
   min-height: 40px;
   padding: 0 14px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--card);
-  color: var(--ink);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius);
+  background: var(--surface-strong);
+  color: var(--foreground);
   cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease-out);
 }
 button:hover:not(:disabled) {
-  border-color: #9aa8b8;
+  border-color: var(--muted);
 }
 button:disabled {
   opacity: 0.45;
   cursor: default;
 }
+/* Amber = the one action that advances your turn. */
 button.primary {
   background: var(--accent);
   border-color: var(--accent);
-  color: #fff;
-  font-weight: 600;
+  color: var(--accent-on);
+}
+button.danger {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: var(--danger-on);
+}
+button.primary:hover:not(:disabled),
+button.danger:hover:not(:disabled) {
+  border-color: var(--foreground);
 }
 button.ghost {
   background: transparent;
@@ -57,32 +57,31 @@ button.ghost {
 button.on {
   border-color: var(--accent);
   box-shadow: inset 0 0 0 1px var(--accent);
-  background: #eff6ff;
+  background: var(--accent-subtle);
 }
 button.big {
   min-height: 52px;
   font-size: 1.1rem;
   padding: 0 22px;
 }
-:focus-visible {
-  outline: 3px solid var(--accent);
-  outline-offset: 2px;
+input {
+  accent-color: var(--foreground);
 }
 input[type="text"] {
   font: inherit;
   min-height: 40px;
   padding: 0 10px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--foreground);
 }
 kbd {
-  font:
-    600 0.85em ui-monospace,
-    monospace;
-  background: #f3f4f6;
-  border: 1px solid var(--line);
+  font: 600 0.85em var(--font-mono);
+  background: var(--surface-strong);
+  border: 1px solid var(--border);
   border-bottom-width: 2px;
-  border-radius: 5px;
+  border-radius: var(--radius);
   padding: 1px 6px;
 }
 .row {
@@ -100,7 +99,7 @@ kbd {
   font-size: 0.9rem;
 }
 .warn {
-  color: #92400e;
+  color: var(--warning-text);
 }
 .sr-only {
   position: absolute;
@@ -115,7 +114,7 @@ kbd {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  border: 1px solid rgb(0 0 0 / 25%);
+  border: 1px solid var(--border);
   flex: none;
 }
 .dot.big {
@@ -135,6 +134,10 @@ kbd {
 }
 .screen h1 {
   margin: 0 0 16px;
+  font-size: 30px;
+}
+.home > h1 {
+  font-size: 48px;
 }
 .screen-head {
   display: flex;
@@ -147,15 +150,15 @@ kbd {
   flex: 1;
 }
 .screen section {
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
   padding: 14px 16px;
   margin: 14px 0;
 }
 .screen h2 {
   margin: 0 0 8px;
-  font-size: 1.1rem;
+  font-size: 18px;
 }
 .menu {
   display: grid;
@@ -164,15 +167,16 @@ kbd {
 }
 .banner {
   padding: 10px 14px;
-  border-radius: 8px;
+  border-radius: var(--radius-card);
   margin: 8px 0;
 }
 .banner.warn {
-  background: var(--warn-bg);
+  background: var(--warning-bg);
 }
 .banner.err {
-  background: #fee2e2;
-  color: var(--danger);
+  background: var(--surface);
+  border: 1px solid var(--danger);
+  color: var(--foreground);
 }
 .game > .banner {
   position: fixed;
@@ -181,7 +185,7 @@ kbd {
   transform: translateX(-50%);
   z-index: 30;
   max-width: min(640px, 94vw);
-  box-shadow: 0 2px 10px rgb(0 0 0 / 15%);
+  border: 1px solid var(--border);
 }
 .saves {
   list-style: none;
@@ -195,7 +199,7 @@ kbd {
   align-items: center;
   justify-content: space-between;
   padding: 10px 0;
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--border);
 }
 .saves li:first-child {
   border-top: 0;
@@ -230,11 +234,12 @@ kbd {
   min-height: 32px;
   padding: 0;
   border-radius: 50%;
-  border: 2px solid #fff;
-  box-shadow: 0 0 0 1px var(--line);
+  border: 2px solid var(--surface);
+  box-shadow: 0 0 0 1px var(--border-control);
 }
 .swatch.on {
-  box-shadow: 0 0 0 3px var(--ink);
+  border-color: var(--surface);
+  box-shadow: 0 0 0 3px var(--foreground);
 }
 .swatch:disabled {
   opacity: 0.2;
@@ -257,11 +262,13 @@ kbd {
   display: grid;
   place-items: center;
   padding: 24px;
-  background: linear-gradient(160deg, var(--seat), #111827);
+  background: var(--background);
 }
 .pass-card {
-  background: var(--card);
-  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: 4px solid var(--seat);
+  border-radius: var(--radius-card);
   padding: 28px 24px;
   max-width: 440px;
   width: 100%;
@@ -272,6 +279,7 @@ kbd {
 }
 .pass-card h1 {
   margin: 0;
+  font-size: 30px;
 }
 .pass-card p {
   margin: 0;
@@ -284,7 +292,7 @@ kbd {
   display: grid;
   place-items: center;
   font-size: 2rem;
-  font-weight: 800;
+  font-weight: 600;
 }
 
 /* ---- game layout */
@@ -299,7 +307,7 @@ kbd {
     "stage side"
     "bottom bottom";
   position: relative;
-  transition: grid-template-columns 0.2s ease;
+  transition: grid-template-columns var(--dur-base) var(--ease-out);
 }
 @media (min-width: 801px) {
   .game.side-closed {
@@ -323,12 +331,16 @@ kbd {
   align-items: center;
   gap: 10px;
   padding: 6px 12px;
-  background: var(--card);
-  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
 }
 .topbar select {
   font: inherit;
   min-height: 36px;
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--foreground);
 }
 .speed {
   display: flex;
@@ -353,16 +365,16 @@ kbd {
   display: flex;
   flex-direction: column;
   min-height: 0;
-  background: var(--card);
-  border-left: 1px solid var(--line);
+  background: var(--surface);
+  border-left: 1px solid var(--border);
 }
 .drawer-toggle {
   display: none;
 }
 .bottom {
   grid-area: bottom;
-  background: var(--card);
-  border-top: 1px solid var(--line);
+  background: var(--surface);
+  border-top: 1px solid var(--border);
   padding: 8px 12px;
   padding-bottom: calc(8px + env(safe-area-inset-bottom));
 }
@@ -381,15 +393,20 @@ kbd {
 }
 .steps li {
   padding: 6px 12px;
-  border-radius: 999px;
-  background: #f3f4f6;
+  border-radius: var(--radius);
+  background: var(--surface);
   color: var(--muted);
   font-size: 0.9rem;
 }
 .steps li.on {
-  background: var(--ink);
-  color: #fff;
+  background: var(--surface-strong);
+  color: var(--foreground);
   font-weight: 600;
+}
+/* Your turn: the loudest element in the game. */
+.stepbar.mine .steps li.on {
+  background: var(--accent);
+  color: var(--accent-on);
 }
 .note {
   color: var(--muted);
@@ -409,14 +426,14 @@ kbd {
   align-items: center;
   gap: 8px;
   padding: 6px 8px;
-  border-radius: 8px;
+  border-radius: var(--radius);
 }
 .players li.turn {
-  background: #eff6ff;
-  box-shadow: inset 3px 0 0 var(--accent);
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
 }
 .players li.out {
-  opacity: 0.5;
+  opacity: 0.45;
 }
 .pname {
   font-weight: 600;
@@ -433,8 +450,9 @@ kbd {
 }
 .tag {
   font-size: 0.75rem;
-  background: #fee2e2;
-  border-radius: 6px;
+  background: var(--surface-strong);
+  color: var(--muted);
+  border-radius: var(--radius);
   padding: 1px 6px;
 }
 .feed {
@@ -442,7 +460,7 @@ kbd {
   min-height: 0;
   overflow: auto;
   padding: 8px 12px;
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--border);
   font-size: 0.9rem;
 }
 .feed p {
@@ -455,46 +473,48 @@ kbd {
   inset: 0;
   touch-action: none;
   user-select: none;
-  background: var(--ocean);
+  background: var(--sea);
 }
 .board:focus-visible {
-  outline: 3px solid var(--accent);
-  outline-offset: -3px;
+  outline: 2px solid var(--foreground);
+  outline-offset: -2px;
 }
 .board svg {
   display: block;
 }
 .ocean {
-  fill: var(--ocean);
+  fill: var(--sea);
 }
 .shape {
-  stroke: #fff;
-  stroke-width: 1.2px;
+  stroke: var(--land-border);
+  stroke-width: 2px;
   vector-effect: non-scaling-stroke;
   stroke-linejoin: round;
 }
 .shape.candidate {
-  stroke: #fff;
-  stroke-width: 2.6px;
+  stroke: var(--foreground);
+  stroke-width: 2px;
 }
 .shape.target {
-  stroke: #111827;
+  stroke: var(--foreground);
   stroke-width: 2.6px;
   stroke-dasharray: 7 4;
 }
+.attacking .shape.target {
+  stroke: var(--danger);
+}
 .shape.source {
-  stroke: #111827;
-  stroke-width: 3.6px;
+  stroke: var(--accent);
+  stroke-width: 3.5px;
 }
 .shape.dim {
-  opacity: 0.5;
+  opacity: 0.35;
 }
 .links .sea {
   fill: none;
-  stroke: #fff;
+  stroke: var(--sea-link);
   stroke-width: 1.6px;
   stroke-dasharray: 5 5;
-  opacity: 0.85;
   vector-effect: non-scaling-stroke;
 }
 .links g.sea {
@@ -502,7 +522,7 @@ kbd {
 }
 .links g.sea path {
   fill: none;
-  stroke: #fff;
+  stroke: var(--sea-link);
   stroke-width: 1.8px;
   stroke-dasharray: 5 5;
   vector-effect: non-scaling-stroke;
@@ -515,8 +535,7 @@ kbd {
 }
 .links .sea.lit,
 .links g.sea.lit path {
-  stroke: #111827;
-  opacity: 1;
+  stroke: var(--foreground);
 }
 .links .sea.lit {
   stroke-width: 2.4px;
@@ -533,49 +552,56 @@ kbd {
   stroke: transparent;
   stroke-width: 3px;
 }
-.badge.focused .ring {
-  stroke: var(--accent);
+.badge.candidate .ring {
+  stroke: var(--border-control);
 }
 .badge.source .ring {
-  stroke: #111827;
+  stroke: var(--accent);
 }
 .badge.target .ring {
-  stroke: #111827;
+  stroke: var(--foreground);
   stroke-dasharray: 5 3;
 }
-.badge.candidate .ring {
-  stroke: #ffffffcc;
+.attacking .badge.target .ring {
+  stroke: var(--danger);
+}
+/* Focus beats the attack ring: focus must never be confused with selection or target. */
+.board .badge.focused .ring {
+  stroke: var(--foreground);
 }
 .badge.dim {
-  opacity: 0.55;
+  opacity: 0.35;
 }
 .badge .disc {
-  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 35%));
+  stroke: var(--land-border);
+  stroke-width: 2px;
 }
 .badge .count {
-  font:
-    800 15px system-ui,
-    sans-serif;
-  fill: #111827;
+  font: 600 15px var(--font-mono);
+  font-variant-numeric: tabular-nums;
   pointer-events: none;
+}
+.badge .chip {
+  fill: var(--background);
+  stroke-width: 1.5px;
 }
 .badge .initial {
-  font:
-    800 9px system-ui,
-    sans-serif;
+  font: 600 9px var(--font-sans);
+  fill: var(--foreground);
   pointer-events: none;
 }
+.badge .staged-chip {
+  fill: var(--accent);
+}
 .badge .staged {
-  font:
-    700 11px system-ui,
-    sans-serif;
-  fill: #fff;
+  font: 600 11px var(--font-mono);
+  fill: var(--accent-on);
   pointer-events: none;
 }
 .badge .capital {
   font-size: 16px;
-  fill: #f59e0b;
-  stroke: #111827;
+  fill: var(--warning-text);
+  stroke: var(--background);
   stroke-width: 0.8px;
   pointer-events: none;
 }
@@ -595,26 +621,25 @@ kbd {
 .tooltip {
   position: absolute;
   pointer-events: none;
-  background: #111827;
-  color: #fff;
+  background: var(--surface-strong);
+  color: var(--foreground);
+  border: 1px solid var(--border);
   padding: 6px 10px;
-  border-radius: 6px;
+  border-radius: var(--radius);
   font-size: 0.85rem;
   white-space: nowrap;
   z-index: 5;
 }
 .fx-loss {
-  font:
-    800 20px system-ui,
-    sans-serif;
-  fill: #dc2626;
-  stroke: #fff;
+  font: 600 20px var(--font-mono);
+  fill: var(--danger);
+  stroke: var(--background);
   stroke-width: 4px;
   paint-order: stroke;
-  animation: floatup 1.1s ease-out forwards;
+  animation: floatup 1.1s var(--ease-out) forwards;
 }
 .fx-move {
-  stroke: #111827;
+  stroke: var(--foreground);
   stroke-width: 4px;
   stroke-dasharray: 10 8;
   stroke-linecap: round;
@@ -645,11 +670,10 @@ kbd {
   transform: translateX(-50%);
   width: max-content;
   max-width: calc(100% - 20px);
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
   padding: 10px 12px;
-  box-shadow: 0 4px 18px rgb(0 0 0 / 18%);
   display: grid;
   gap: 8px;
   z-index: 10;
@@ -666,45 +690,45 @@ kbd {
   position: absolute;
   left: 12px;
   top: 12px;
-  background: #111827;
-  color: #fff;
-  border-radius: 10px;
+  background: var(--surface-strong);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
   padding: 6px 8px 6px 12px;
   display: flex;
   gap: 10px;
   align-items: center;
   z-index: 9;
 }
-.tip kbd {
-  color: #111827;
-}
 .tip button {
-  color: #fff;
   min-height: 32px;
 }
 
-/* ---- overlays and modals */
+/* ---- overlays and modals (the only places with a shadow) */
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgb(15 23 42 / 45%);
+  background: var(--scrim);
   display: grid;
   place-items: center;
   padding: 16px;
   z-index: 40;
 }
 .modal {
-  background: var(--card);
-  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
   padding: 18px 20px;
   max-width: min(720px, 100%);
   max-height: 90dvh;
   overflow: auto;
   display: grid;
   gap: 10px;
+  box-shadow: 0 8px 24px var(--scrim);
 }
 .modal h2 {
   margin: 0;
+  font-size: 18px;
 }
 .shortcuts .groups {
   display: grid;
@@ -712,13 +736,13 @@ kbd {
   gap: 12px;
 }
 .shortcuts .group {
-  border: 1px solid var(--line);
-  border-radius: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
   padding: 8px 12px;
 }
 .shortcuts .group.current {
-  border-color: var(--accent);
-  background: #eff6ff;
+  border-color: var(--border-control);
+  background: var(--surface-strong);
 }
 .shortcuts h3 {
   margin: 0 0 6px;
@@ -752,6 +776,7 @@ kbd {
   padding: 8px;
   text-align: left;
   border-width: 2px;
+  border-color: var(--border);
 }
 .card b {
   font-size: 1.4rem;
@@ -760,24 +785,25 @@ kbd {
   color: var(--muted);
 }
 .card.inset {
-  border-color: #16a34a;
+  border-color: var(--success);
 }
 .card.on {
-  background: #eff6ff;
+  background: var(--accent-subtle);
   box-shadow: 0 0 0 2px var(--accent);
 }
 .dice-overlay {
   position: absolute;
   inset: 0;
-  background: rgb(15 23 42 / 35%);
+  background: var(--scrim);
   display: grid;
   place-items: center;
   z-index: 20;
   cursor: pointer;
 }
 .dice-card {
-  background: var(--card);
-  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
   padding: 14px 20px;
   display: grid;
   gap: 8px;
@@ -801,7 +827,7 @@ kbd {
   color: var(--danger);
 }
 .die.def {
-  color: #1d4ed8;
+  color: var(--foreground);
 }
 .die.dim {
   opacity: 0.25;
@@ -827,9 +853,9 @@ kbd {
 }
 .chart {
   margin: 12px 0;
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
   padding: 8px 10px;
 }
 .chart figcaption {
@@ -840,7 +866,7 @@ kbd {
   height: auto;
 }
 .chart .grid {
-  stroke: var(--line);
+  stroke: var(--border);
   stroke-width: 1;
 }
 .chart .axis {
@@ -865,11 +891,14 @@ kbd {
   font-size: 0.75rem;
   white-space: nowrap;
   min-width: 70px;
-  border-radius: 4px;
-  color: #fff;
+  border-radius: var(--radius);
+  color: var(--foreground);
+  text-shadow: 0 0 2px var(--background);
 }
 .luck .bar.exp {
-  background: #9ca3af;
+  background: var(--surface-strong);
+  color: var(--muted);
+  text-shadow: none;
 }
 .luck .verdict {
   white-space: nowrap;
@@ -887,7 +916,6 @@ kbd {
   min-width: 120px;
 }
 .timeline .count {
-  font-variant-numeric: tabular-nums;
   color: var(--muted);
 }
 .replay .sidebar.open {
@@ -907,9 +935,9 @@ kbd {
   }
   .strip {
     display: block;
-    background: var(--card);
+    background: var(--surface);
     overflow-x: auto;
-    border-bottom: 1px solid var(--line);
+    border-bottom: 1px solid var(--border);
   }
   .strip .players {
     display: flex;
@@ -931,9 +959,9 @@ kbd {
     bottom: calc(var(--bottom-h) + env(safe-area-inset-bottom));
     max-height: 45dvh;
     border-left: 0;
-    border-top: 1px solid var(--line);
+    border-top: 1px solid var(--border);
     z-index: 25;
-    background: var(--card);
+    background: var(--surface);
   }
   .replay .sidebar {
     grid-area: strip;
@@ -956,9 +984,8 @@ kbd {
     bottom: calc(var(--bottom-h) + 8px + env(safe-area-inset-bottom));
   }
   .game:not(.replay):not(.drawer-open) .sidebar .drawer-toggle {
-    background: var(--card);
-    border: 1px solid var(--line);
-    box-shadow: 0 2px 8px rgb(0 0 0 / 15%);
+    background: var(--surface-strong);
+    border: 1px solid var(--border-control);
   }
   .side-players {
     display: none;
@@ -1014,8 +1041,7 @@ kbd {
 }
 .dice-overlay.settled .dice-card {
   pointer-events: auto;
-  box-shadow: 0 4px 18px rgb(0 0 0 / 25%);
-  border: 1px solid var(--line);
+  box-shadow: 0 8px 24px var(--scrim);
 }
 .feed-head {
   display: flex;
@@ -1023,7 +1049,7 @@ kbd {
   justify-content: space-between;
   gap: 8px;
   padding: 4px 12px;
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--border);
   font-size: 0.85rem;
 }
 .feed-head + .feed {
@@ -1033,8 +1059,8 @@ kbd {
 /* ---- compact player strip (sidebar closed, desktop) */
 .compact {
   grid-area: compact;
-  background: var(--card);
-  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
   overflow-x: auto;
   min-width: 0;
 }
@@ -1053,14 +1079,15 @@ kbd {
   gap: 6px;
   padding: 2px 10px;
   border-radius: 999px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--border);
   font-size: 0.85rem;
   white-space: nowrap;
 }
 .compact-strip li.turn {
-  border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 14%, transparent);
-  font-weight: 700;
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  border-color: transparent;
+  font-weight: 600;
 }
 .compact-strip li.out {
   opacity: 0.45;
@@ -1075,7 +1102,6 @@ kbd {
 .compact-strip .pstats {
   margin-left: 0;
   color: var(--muted);
-  font-variant-numeric: tabular-nums;
 }
 
 /* ---- online (M5) ---- */
@@ -1083,12 +1109,11 @@ kbd {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  border: 1px solid #888;
+  background: var(--presence-off);
   display: inline-block;
 }
 .presence.on {
-  background: #3c9;
-  border-color: #3c9;
+  background: var(--success);
 }
 .update-prompt,
 .banner.reload {
@@ -1098,7 +1123,7 @@ kbd {
   transform: translateX(-50%);
   z-index: 60;
   max-width: min(520px, 94vw);
-  box-shadow: 0 2px 10px rgb(0 0 0 / 20%);
+  border: 1px solid var(--border);
 }
 .badge {
   display: inline-block;
@@ -1106,7 +1131,7 @@ kbd {
   padding: 0 7px;
   border-radius: 11px;
   background: var(--danger);
-  color: #fff;
+  color: var(--danger-on);
   font-size: 0.85rem;
   text-align: center;
 }
@@ -1126,14 +1151,14 @@ kbd {
   font: inherit;
   min-height: 40px;
   padding: 0 10px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--card);
-  color: var(--ink);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--foreground);
 }
 .code {
   font-size: 1.4rem;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.15em;
 }
 .timer {
   display: inline-flex;

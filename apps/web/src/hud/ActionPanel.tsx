@@ -98,10 +98,10 @@ export function ActionPanel(props: {
               {n} {n === 1 ? 'die' : 'dice'}
             </button>
           ))}
-          <button type="button" className="primary" disabled={locked} onClick={() => send({ type: 'roll' })}>
+          <button type="button" className="danger" disabled={locked} onClick={() => send({ type: 'roll' })}>
             Roll
           </button>
-          <button type="button" className="primary" disabled={locked} onClick={() => send({ type: 'blitz' })}>
+          <button type="button" className="danger" disabled={locked} onClick={() => send({ type: 'blitz' })}>
             Blitz
           </button>
           <button type="button" className="ghost" onClick={() => send({ type: 'back' })}>

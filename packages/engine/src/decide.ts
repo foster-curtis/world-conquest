@@ -34,7 +34,7 @@ import {
 } from './types.ts';
 
 /** Colors offered to humans, in "first free" order. */
-export const SEAT_COLORS: readonly Color[] = ['red', 'blue', 'green', 'yellow', 'purple', 'black'];
+export const SEAT_COLORS: readonly Color[] = ['crimson', 'cobalt', 'jade', 'berry', 'bone', 'sky'];
 const MAX_SEAT_ID = 5;
 const HAND_LIMIT_AFTER_FORCED_TRADE = 4;
 

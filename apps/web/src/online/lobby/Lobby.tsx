@@ -60,7 +60,7 @@ export function Lobby(props: {
       )}
       <section aria-label="Invite">
         <h2>
-          Join code <code className="code">{code}</code>
+          Join code <code className="code num">{code}</code>
         </h2>
         <p className="hint">{url}</p>
         <div className="row">
@@ -94,7 +94,7 @@ export function Lobby(props: {
               {host && s.seat !== me && (
                 <button
                   type="button"
-                  className="ghost"
+                  className="danger"
                   disabled={busy || props.offline}
                   onClick={() => void run({ type: 'RemoveFromLobby', seat: s.seat })}
                 >

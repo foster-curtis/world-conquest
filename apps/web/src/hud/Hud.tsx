@@ -36,7 +36,7 @@ export function StepBar(props: {
     else note = p.fortified ? 'Already fortified' : 'Fortify once, or end your turn';
   } else if (p.kind === 'game_over') note = 'Game over';
   return (
-    <div className="stepbar">
+    <div className={`stepbar${p.kind === 'turn' && p.seat === view.viewer ? ' mine' : ''}`}>
       <ol className="steps">
         {STEPS.map((s) => (
           <li key={s.id} className={s.id === active ? 'on' : ''} aria-current={s.id === active ? 'step' : undefined}>
@@ -96,7 +96,7 @@ export function PlayersPanel({ view, present }: { view: PlayerView; present?: Re
               {s.consecutiveStrikes}/3 strikes
             </span>
           )}
-          <span className="pstats" title="territories / armies / cards">
+          <span className="pstats num" title="territories / armies / cards">
             {c.territories}T {c.armies}A {s.kind === 'human' ? `${s.handSize}C` : ''}
           </span>
           {s.status !== 'active' && s.kind === 'human' && <span className="tag">{s.status}</span>}
@@ -119,7 +119,7 @@ export function CompactStrip({ view }: { view: PlayerView }) {
         >
           <span className="dot" style={{ background: COLOR_HEX[r.color] }} />
           <span className="pname">{r.name}</span>
-          <span className="pstats">
+          <span className="pstats num">
             {r.territories}T {r.armies}A{r.cards === null ? '' : ` ${r.cards}C`}
           </span>
         </li>

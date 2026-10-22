@@ -16,7 +16,7 @@ function mulberry(seed: number) {
   };
 }
 
-const COLORS: Color[] = ['red', 'blue', 'green', 'yellow', 'purple', 'black'];
+const COLORS: Color[] = ['crimson', 'cobalt', 'jade', 'berry', 'bone', 'sky'];
 const players = (n: number) => Array.from({ length: n }, (_, i) => ({ name: `P${i + 1}`, color: COLORS[i] }));
 
 /** Plays like the UI would: pass screen, then one command at a time from the acting seat's view. */

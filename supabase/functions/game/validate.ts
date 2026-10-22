@@ -2,7 +2,7 @@
 import type { Color, Command, GameSettings, Phase } from '@wc/engine';
 import { HttpError } from './http.ts';
 
-const COLORS: readonly string[] = ['red', 'blue', 'green', 'yellow', 'purple', 'black', 'gray'];
+const COLORS: readonly string[] = ['crimson', 'cobalt', 'jade', 'berry', 'bone', 'sky', 'gray'];
 const PHASES: readonly string[] = ['lobby', 'draft', 'setup', 'turn', 'game_over', 'canceled'];
 const SETTING_KEYS = ['mapId', 'winCondition', 'pace', 'territoryAssignment', 'maxSeats'] as const;
 

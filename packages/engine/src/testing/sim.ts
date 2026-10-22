@@ -180,7 +180,7 @@ function fuzzCommand(g: Game, rnd: () => number): Command {
     { type: 'DraftPick', territory: t() },
     { type: 'SubmitSetup', placements: { [t()]: n() } },
     { type: 'SkipTurn' },
-    { type: 'ChangeColor', color: 'green' },
+    { type: 'ChangeColor', color: 'jade' },
     { type: 'StartGame' },
   ];
   return pick(rnd, options);

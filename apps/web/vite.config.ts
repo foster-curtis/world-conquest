@@ -8,16 +8,16 @@ export default defineConfig({
     // Prompt-to-update (SPEC 9.5): precache the shell so pass-and-play works offline; a new version waits for the player.
     VitePWA({
       registerType: 'prompt',
-      includeAssets: ['apple-touch-icon.png'],
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'brand/*.svg'],
       manifest: {
         name: 'World Conquest',
         short_name: 'Conquest',
-        description: 'A Risk-style strategy game for friends.',
+        description: 'Take the map with your friends, one turn at a time.',
         start_url: '/',
         scope: '/',
         display: 'standalone',
-        background_color: '#1f2937',
-        theme_color: '#1f2937',
+        background_color: '#14161a',
+        theme_color: '#14161a',
         icons: [
           { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'icon-512.png', sizes: '512x512', type: 'image/png' },
@@ -25,7 +25,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,json}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,json,woff2}'],
         navigateFallback: 'index.html',
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
       },

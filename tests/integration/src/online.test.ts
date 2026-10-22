@@ -102,7 +102,7 @@ describe('online client: sign in, create, join, start, play a turn', () => {
     const host = await signIn('Stella');
     const created = await host.api.createGame();
     await expect(
-      host.api.command(created.gameId, { type: 'ChangeColor', color: 'green' }, created.version - 1),
+      host.api.command(created.gameId, { type: 'ChangeColor', color: 'jade' }, created.version - 1),
     ).rejects.toMatchObject({ code: 'STALE_VERSION', status: 409 });
 
     let outdated = false;

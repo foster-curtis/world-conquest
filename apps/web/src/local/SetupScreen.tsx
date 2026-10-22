@@ -23,8 +23,8 @@ export function SetupScreen(props: {
   busy: boolean;
 }) {
   const [players, setPlayers] = useState<PlayerInput[]>([
-    { name: 'Player 1', color: 'red' },
-    { name: 'Player 2', color: 'blue' },
+    { name: 'Player 1', color: 'crimson' },
+    { name: 'Player 2', color: 'cobalt' },
   ]);
   const [win, setWin] = useState<WinCondition>('classic');
   const problem = validatePlayers(players);

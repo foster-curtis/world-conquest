@@ -34,26 +34,26 @@ describe('lobby', () => {
   it('seats, colors and host', () => {
     const g = lobbyGame(3, {}, 1, false);
     expect(g.state.seats.map((s) => [s.seat, s.color])).toEqual([
-      [0, 'red'],
-      [1, 'blue'],
-      [2, 'green'],
+      [0, 'crimson'],
+      [1, 'cobalt'],
+      [2, 'jade'],
     ]);
     expect(g.state.hostSeat).toBe(0);
     expect(g.reject(SYSTEM, { type: 'JoinGame', displayName: 'X', userId: 'user-1' })).toBe('ALREADY_JOINED');
     expect(g.reject(seat(1), { type: 'JoinGame', displayName: 'X' })).toBe('ALREADY_JOINED');
-    expect(g.reject(SYSTEM, { type: 'JoinGame', displayName: 'X', color: 'blue' })).toBe('COLOR_TAKEN');
+    expect(g.reject(SYSTEM, { type: 'JoinGame', displayName: 'X', color: 'cobalt' })).toBe('COLOR_TAKEN');
     expect(g.reject(SYSTEM, { type: 'JoinGame', displayName: 'X', color: 'gray' })).toBe('COLOR_TAKEN');
-    g.do(SYSTEM, { type: 'JoinGame', displayName: 'Dee', color: 'black' });
-    expect(g.state.seats[3]).toMatchObject({ seat: 3, color: 'black', userId: null, displayName: 'Dee' });
+    g.do(SYSTEM, { type: 'JoinGame', displayName: 'Dee', color: 'sky' });
+    expect(g.state.seats[3]).toMatchObject({ seat: 3, color: 'sky', userId: null, displayName: 'Dee' });
   });
 
   it('change color only to a free, non-neutral color', () => {
     const g = lobbyGame(2, {}, 1, false);
-    expect(g.reject(seat(1), { type: 'ChangeColor', color: 'red' })).toBe('COLOR_TAKEN');
+    expect(g.reject(seat(1), { type: 'ChangeColor', color: 'crimson' })).toBe('COLOR_TAKEN');
     expect(g.reject(seat(1), { type: 'ChangeColor', color: 'gray' })).toBe('COLOR_TAKEN');
-    expect(g.reject(seat(4), { type: 'ChangeColor', color: 'black' })).toBe('NOT_A_SEAT');
-    expect(g.do(seat(1), { type: 'ChangeColor', color: 'purple' })).toEqual([
-      { type: 'SeatColorChanged', seat: 1, color: 'purple' },
+    expect(g.reject(seat(4), { type: 'ChangeColor', color: 'sky' })).toBe('NOT_A_SEAT');
+    expect(g.do(seat(1), { type: 'ChangeColor', color: 'bone' })).toEqual([
+      { type: 'SeatColorChanged', seat: 1, color: 'bone' },
     ]);
   });
 

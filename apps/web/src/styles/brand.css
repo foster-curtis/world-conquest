@@ -1,0 +1,136 @@
+/*
+ * World Conquest — brand tokens (single dark theme for v1)
+ *
+ * Import before styles.css (in main.tsx):
+ *   import '@fontsource-variable/geist';
+ *   import '@fontsource/jetbrains-mono/600.css';
+ *   import './styles/brand.css';
+ *   import './styles.css';
+ *
+ * Every color in the app comes from a token here. No hex literals in
+ * components or styles.css — the only exception is board/colors.ts, which
+ * mirrors the --player-* values for SVG attributes and must stay in sync.
+ *
+ * Amber (--accent) means "you / act now": your turn, your selection, the
+ * button that advances your phase. It is never a player color and never
+ * used for decoration. One amber fill on screen at a time.
+ */
+
+:root {
+  color-scheme: dark;
+
+  /* ---- Shared with fostercurtis.dev (do not change) ---- */
+  --brand-ink: #14161a;
+  --brand-paper: #ffffff;
+  --brand-amber: #e8a33d;
+  --brand-gray: #6b7280;
+
+  /* ---- Surfaces and text ---- */
+  --background: #14161a; /* page ground */
+  --foreground: #ffffff; /* primary text, 18:1 on background */
+  --surface: #1a1d23; /* panels, cards, sidebar, drawer */
+  --surface-strong: #22262e; /* raised controls, hovered rows, kbd, dice tray */
+  --border: #2e333c; /* hairlines between panels (decorative) */
+  --border-control: #6b7280; /* input/button outlines that must be seen: 3.75:1 */
+  --muted: #9aa1ad; /* secondary text: 5.8:1+ on every surface */
+  --scrim: rgb(10 11 13 / 72%); /* modal / pass-screen backdrop */
+
+  /* ---- Accent (amber = you) ---- */
+  --accent: #e8a33d; /* fills: primary button, your-turn banner, selected outline */
+  --accent-on: #14161a; /* text on --accent, 8.4:1 */
+  --accent-text: #e8a33d; /* amber text/icons on background or surface, 7.8:1+ */
+  --accent-subtle: #2e2618; /* toggled-on button / selected row background */
+
+  /* ---- Status ---- */
+  --danger: #e05252; /* attack target, eliminate, destructive confirm */
+  --danger-on: #14161a;
+  --success: #3fb98a; /* captured, reinforced, online dot */
+  --warning-bg: #2b2416; /* e.g. "saves aren't persistent on this device" */
+  --warning-text: #f2c57c; /* 9.5:1 on --warning-bg */
+  --presence-off: #5a6270; /* away / offline dot */
+
+  /* ---- Map ---- */
+  --sea: #14161a; /* water = page ground, the board floats */
+  --land: #3a404b; /* unowned territory and the neutral (gray) seat */
+  --land-on: #ffffff; /* army count on --land */
+  --land-border: #14161a; /* 2px gutter between neighbouring territories */
+  --coast: #6b7280; /* 1.5px outer coastline, 3.75:1 vs --sea */
+  --sea-link: #6b7280; /* dashed sea-route lines */
+
+  /* ---- Players (IDs match the engine's Color type) ---- */
+  --player-crimson: #c23b3b;
+  --player-crimson-on: #ffffff; /* 5.3:1 */
+  --player-cobalt: #2f63c4;
+  --player-cobalt-on: #ffffff; /* 5.7:1 */
+  --player-jade: #3fb98a;
+  --player-jade-on: #14161a; /* 7.4:1 */
+  --player-berry: #a8327f;
+  --player-berry-on: #ffffff; /* 6.1:1 */
+  --player-bone: #e3e5e9;
+  --player-bone-on: #14161a; /* 14.4:1 */
+  --player-sky: #7cc4f2;
+  --player-sky-on: #14161a; /* 9.5:1 */
+  --player-gray: var(--land);
+  --player-gray-on: var(--land-on); /* neutral seat */
+
+  /* ---- Type ---- */
+  --font-sans: "Geist Variable", "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --tracking-display: -0.025em; /* all headings */
+
+  /* ---- Shape and space ---- */
+  --radius: 6px; /* buttons, inputs, chips, kbd */
+  --radius-card: 10px; /* panels, dialogs, drawer, turn banner */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  /* ---- Motion ---- */
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  font-family: var(--font-sans);
+  color: var(--foreground);
+  background: var(--background);
+}
+
+/* Numbers that change in place (army counts, dice, timers, join codes, card counts) */
+.num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+h1,
+h2,
+h3 {
+  font-weight: 600;
+  letter-spacing: var(--tracking-display);
+  text-wrap: balance;
+}
+
+:focus-visible {
+  /* Foreground, not amber: focus must never look like selection. */
+  outline: 2px solid var(--foreground);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0ms;
+    --dur-base: 0ms;
+  }
+}
+
+/*
+ * Light theme values (not shipped in v1; SPEC lists a light theme as later work).
+ * Kept here so the palette is decided when it's needed:
+ *   background #ffffff  foreground #14161a  surface #f6f6f7  surface-strong #eeeef0
+ *   border #dfe0e3  border-control #6b7280  muted #5a6270  accent-text #8f5a0f
+ *   accent-subtle #fbf1e0  sea #e7e8eb  land #c4c8cf  land-on #14161a
+ *   land-border #ffffff  danger #c23b3b  danger-on #ffffff  success #23795a
+ */

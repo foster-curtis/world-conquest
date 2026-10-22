@@ -12,7 +12,7 @@ export type ContinentId = string; // snake_case: e.g. "north_america"
 export type CardId = string;
 export type ISODate = string;
 
-export type Color = 'red' | 'blue' | 'green' | 'yellow' | 'purple' | 'black' | 'gray';
+export type Color = 'crimson' | 'cobalt' | 'jade' | 'berry' | 'bone' | 'sky' | 'gray';
 
 // ---------- Settings ---------------------------------------------------------
 

@@ -46,7 +46,7 @@ describe('concurrency', () => {
     const host = await newUser('Host');
     const { gameId } = await createGame(host);
     const [st] = await sql`select seq, state from public.game_state where game_id = ${gameId}`;
-    const event = { type: 'SeatColorChanged', seat: 0, color: 'green' };
+    const event = { type: 'SeatColorChanged', seat: 0, color: 'jade' };
     const next = { ...st.state, version: st.seq + 1 };
     const stale = await admin.rpc('append_events', {
       p_game_id: gameId,

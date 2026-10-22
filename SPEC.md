@@ -47,7 +47,7 @@ No bots. No mixing modes (no two local players inside an online game).
 ### Players: names & colors
 
 - **Display name** is per account: a `profiles` row (`user_id`, `display_name`), set on first sign-in and editable anytime. The edge function copies it into the seat on `JoinGame` (a snapshot; later profile edits don't rename seats in existing games), together with the caller's `userId` from auth; neither is trusted from the client.
-- **Colors:** on join you get the **first free color** (or the one requested, if free). Anyone can switch to any free color (`ChangeColor`) until the game starts. `gray` is reserved for the neutral seat and can't be picked; the other 6 colors cover a full 6-player game.
+- **Colors:** on join you get the **first free color** (or the one requested, if free). Anyone can switch to any free color (`ChangeColor`) until the game starts. `gray` is reserved for the neutral seat and can't be picked; the other 6 colors (crimson, cobalt, jade, berry, bone, sky) cover a full 6-player game.
 
 ### Host leaving, canceling, cleanup
 
@@ -334,8 +334,8 @@ None for v1. `TurnStarted` writes an `outbox` row so an email sender can be adde
 
 ### 7.1 Visual style
 
-- **Clean flat:** solid territory fills in owner color, thin borders, calm blue-gray ocean, sans-serif type, chunky simplified shapes (§5.3).
-- **One theme** for v1 (no dark mode).
+- **Dark, flat:** ink ground, solid territory fills in owner color with dark gutters, neutral-gray coastlines, Geist and JetBrains Mono. Chunky simplified shapes (§5.3). Full brand rules and tokens: `BRAND.md`.
+- **One theme** (dark) for v1. Amber is reserved for the current player's turn, selection and primary action.
 - **Color-blind support:** player colors are tuned to stay distinguishable, and every army badge also shows the owner's initial.
 
 ### 7.2 Input principles
@@ -496,7 +496,7 @@ Unless decided otherwise later:
 - Spectators (`PlayerView.viewer: null` stays in the contract for redaction and tests, but there is no spectator UI or access)
 - Rematch / "Play again" (§8.4)
 - Host map choice (§2); other maps
-- Dark mode (§7.1)
+- Light mode (§7.1)
 - PR preview deploys (§9.2)
 
 ---
