@@ -44,7 +44,7 @@ export function Loading() {
 export function Footer() {
   return (
     <footer className="site-footer">
-      <Mark size={20} />
+      <Mark size={20} angled />
       <span>World Conquest</span>
       <span aria-hidden="true">·</span>
       <span>© 2026 Foster Curtis</span>
