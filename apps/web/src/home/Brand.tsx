@@ -1,9 +1,12 @@
 // The logo and the pieces that carry it on the start screens: home link, loading splash, footer.
 // Files live in public/brand and are precached (vite.config includeAssets), so they work offline.
 
-/** The four-cell mark. Below 32px it uses the square-cell variant, which stays crisp at small sizes. */
-export function Mark(props: { size: number }) {
-  const src = props.size < 32 ? '/brand/mark-small.svg' : '/brand/mark.svg';
+/**
+ * The four-cell mark. Below 32px it uses the square-cell variant, which stays crisp at small sizes,
+ * unless `angled` asks for the real logo anyway.
+ */
+export function Mark(props: { size: number; angled?: boolean }) {
+  const src = props.size < 32 && !props.angled ? '/brand/mark-small.svg' : '/brand/mark.svg';
   return <img className="mark" src={src} width={props.size} height={props.size} alt="" />;
 }
 
@@ -11,7 +14,7 @@ export function Mark(props: { size: number }) {
 export function HomeLink(props: { onClick: () => void; label?: string }) {
   return (
     <button type="button" className="nav-button" onClick={props.onClick}>
-      <Mark size={20} />
+      <Mark size={24} angled />
       <span className="nav-label">{props.label ?? 'Home'}</span>
     </button>
   );
