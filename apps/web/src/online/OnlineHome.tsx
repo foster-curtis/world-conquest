@@ -1,4 +1,4 @@
-// The online half of the home screen (SPEC 1, 8.1): create / join, and "My games" sections.
+// The online half of the home screen (SPEC 1, 8.1): create / join, "My games" sections, and the account chip.
 import { useState } from 'react';
 import { COLOR_HEX } from '../board/colors.ts';
 import type { AuthState } from './auth/useSession.ts';
@@ -15,6 +15,8 @@ const SECTIONS: { key: keyof MyGames; title: string }[] = [
 function GameItem(props: {
   g: GameRow;
   section: keyof MyGames;
+  /** The home screen's one amber button: the first game waiting on you. */
+  primary: boolean;
   onOpen: (code: string) => void;
   onReplay: (code: string) => void;
 }) {
@@ -30,17 +32,13 @@ function GameItem(props: {
           {humans.map((s) => s.display_name).join(', ')}
         </b>
         <span className="sub">
-          {g.join_code} · {g.settings.winCondition === 'capitals' ? 'Capitals' : 'Classic'} ·{' '}
-          {g.settings.pace === 'sync' ? 'Sync' : 'Async'}
+          <span className="num">{g.join_code}</span> · {g.settings.winCondition === 'capitals' ? 'Capitals' : 'Classic'}{' '}
+          · {g.settings.pace === 'sync' ? 'Sync' : 'Async'}
           {props.section === 'lobbies' && ` · ${humans.length}/${g.settings.maxSeats} players`}
         </span>
       </div>
       <div className="row">
-        <button
-          type="button"
-          className={props.section === 'yourMove' ? 'primary' : ''}
-          onClick={() => props.onOpen(g.join_code)}
-        >
+        <button type="button" className={props.primary ? 'primary' : ''} onClick={() => props.onOpen(g.join_code)}>
           {props.section === 'finished' ? 'Open' : props.section === 'lobbies' ? 'Open lobby' : 'Play'}
         </button>
         {props.section === 'finished' && (
@@ -53,6 +51,28 @@ function GameItem(props: {
   );
 }
 
+/** Top right of the home screen: who is signed in, or a way to sign in. */
+export function Account(props: { auth: AuthState; onSignIn: () => void }) {
+  const { auth } = props;
+  if (!auth.session) {
+    return (
+      <button type="button" onClick={props.onSignIn}>
+        Sign in
+      </button>
+    );
+  }
+  return (
+    <div className="account">
+      <span className="sub">
+        Signed in as <b>{auth.displayName ?? auth.session.user.email}</b>
+      </span>
+      <button type="button" className="ghost" onClick={() => void auth.signOut()}>
+        Sign out
+      </button>
+    </div>
+  );
+}
+
 export function OnlineHome(props: {
   auth: AuthState;
   games: MyGames | null;
@@ -60,7 +80,6 @@ export function OnlineHome(props: {
   onCreate: () => void;
   onOpen: (code: string) => void;
   onReplay: (code: string) => void;
-  onSignIn: () => void;
 }) {
   const [code, setCode] = useState('');
   const [bad, setBad] = useState(false);
@@ -75,75 +94,71 @@ export function OnlineHome(props: {
   };
 
   return (
-    <>
+    <section aria-labelledby="home-online">
+      <h2 id="home-online">Online</h2>
+      <p className="hint">Play with friends on their own devices, live or a turn a day.</p>
       <div className="menu">
-        <button type="button" className="primary big" onClick={props.onCreate}>
+        <button type="button" className="big" onClick={props.onCreate}>
           New online game
         </button>
-        {!auth.session && (
-          <button type="button" className="big" onClick={props.onSignIn}>
-            Sign in
-          </button>
-        )}
       </div>
-      <section aria-label="Join with a code">
-        <h2>Join with a code</h2>
-        <form className="row" onSubmit={go}>
-          <input
-            aria-label="Join code or link"
-            placeholder="K7QM2X or a link"
-            value={code}
-            onChange={(e) => {
-              setCode(e.target.value);
-              setBad(false);
-            }}
-          />
-          <button type="submit" disabled={!code.trim()}>
-            Join
-          </button>
-        </form>
-        {bad && <p className="hint">That is not a join code.</p>}
-      </section>
-      <section aria-label="My games">
-        <h2>
-          My games{' '}
-          {count > 0 && (
-            <span className="badge" title={`${count} waiting on you`}>
-              {count}
-            </span>
+      <form className="row join-form" onSubmit={go}>
+        <input
+          aria-label="Join code or link"
+          placeholder="Join code or link"
+          value={code}
+          onChange={(e) => {
+            setCode(e.target.value);
+            setBad(false);
+          }}
+        />
+        <button type="submit" disabled={!code.trim()}>
+          Join
+        </button>
+      </form>
+      {bad && <p className="hint">That is not a join code.</p>}
+      {!auth.session ? (
+        <p className="hint">Sign in to see your online games.</p>
+      ) : (
+        <>
+          <h3>
+            My games{' '}
+            {count > 0 && (
+              <span className="badge" title={`${count} waiting on you`}>
+                {count}
+              </span>
+            )}
+          </h3>
+          {props.gamesError ? (
+            <p className="hint">{props.gamesError}</p>
+          ) : !games ? (
+            <p className="hint">Loading…</p>
+          ) : SECTIONS.every((s) => games[s.key].length === 0) ? (
+            <p className="hint">No online games yet. Start one and send the link to your friends.</p>
+          ) : (
+            SECTIONS.map(({ key, title }) =>
+              games[key].length === 0 ? null : (
+                <div key={key}>
+                  <h4>{title}</h4>
+                  <ul className="saves">
+                    {games[key].map((g, i) => (
+                      <GameItem
+                        key={g.id}
+                        g={g}
+                        section={key}
+                        primary={key === 'yourMove' && i === 0}
+                        onOpen={props.onOpen}
+                        onReplay={props.onReplay}
+                      />
+                    ))}
+                  </ul>
+                </div>
+              ),
+            )
           )}
-        </h2>
-        {!auth.session ? (
-          <p className="hint">Sign in to see your online games.</p>
-        ) : props.gamesError ? (
-          <p className="hint">{props.gamesError}</p>
-        ) : !games ? (
-          <p className="hint">Loading…</p>
-        ) : (
-          SECTIONS.map(({ key, title }) =>
-            games[key].length === 0 ? null : (
-              <div key={key}>
-                <h3>{title}</h3>
-                <ul className="saves">
-                  {games[key].map((g) => (
-                    <GameItem key={g.id} g={g} section={key} onOpen={props.onOpen} onReplay={props.onReplay} />
-                  ))}
-                </ul>
-              </div>
-            ),
-          )
-        )}
-        {games && SECTIONS.every((s) => games[s.key].length === 0) && <p className="hint">No online games yet.</p>}
-        {auth.session && (
-          <p className="hint">
-            Signed in as {auth.displayName ?? auth.session.user.email}.{' '}
-            <button type="button" className="ghost" onClick={() => void auth.signOut()}>
-              Sign out
-            </button>
-          </p>
-        )}
-      </section>
-    </>
+        </>
+      )}
+    </section>
   );
 }
 

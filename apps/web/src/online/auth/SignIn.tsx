@@ -1,5 +1,6 @@
 // Email -> magic link, with an "or enter the code" field (SPEC 6 Auth). Stays on the current URL.
 import { type FormEvent, useState } from 'react';
+import { HomeLink } from '../../home/Brand.tsx';
 import { supabase } from '../supabase.ts';
 import { requestSignIn, verifyCode } from './auth.ts';
 
@@ -40,11 +41,7 @@ export function SignIn(props: { onBack?: () => void; reason?: string }) {
   return (
     <div className="screen">
       <div className="screen-head">
-        {props.onBack && (
-          <button type="button" className="ghost" onClick={props.onBack}>
-            ← Home
-          </button>
-        )}
+        {props.onBack && <HomeLink onClick={props.onBack} />}
         <h1>Sign in</h1>
       </div>
       <section>

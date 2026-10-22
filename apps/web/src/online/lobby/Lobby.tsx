@@ -1,7 +1,8 @@
 // The lobby for members (SPEC 2): seats and colors, host settings, remove, start, cancel, leave, share.
-import { type Color, type PlayerView, SEAT_COLORS } from '@wc/engine';
+import { type Color, MIN_SEATS, type PlayerView, SEAT_COLORS } from '@wc/engine';
 import { useState } from 'react';
 import { COLOR_HEX } from '../../board/colors.ts';
+import { HomeLink } from '../../home/Brand.tsx';
 import type { OnlineGame } from '../game/OnlineGame.ts';
 import { gameUrl } from '../route.ts';
 import { patchSettings, SettingsForm } from './SettingsForm.tsx';
@@ -19,6 +20,7 @@ export function Lobby(props: {
   const host = view.hostSeat === me;
   const humans = view.seats.filter((s) => s.kind === 'human');
   const taken = new Set(humans.map((s) => s.color));
+  const missing = Math.max(0, MIN_SEATS - humans.length);
   const url = gameUrl(window.location.origin, code);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -43,9 +45,7 @@ export function Lobby(props: {
   return (
     <div className="screen lobby">
       <div className="screen-head">
-        <button type="button" className="ghost" onClick={props.onHome}>
-          ← Home
-        </button>
+        <HomeLink onClick={props.onHome} />
         <h1>Lobby</h1>
       </div>
       {props.offline && (
@@ -58,12 +58,11 @@ export function Lobby(props: {
           {error}
         </div>
       )}
-      <section aria-label="Invite">
-        <h2>
-          Join code <code className="code num">{code}</code>
-        </h2>
-        <p className="hint">{url}</p>
-        <div className="row">
+      <section aria-labelledby="lobby-invite">
+        <h2 id="lobby-invite">Invite players</h2>
+        <div className="invite">
+          <span className="sr-only">Join code</span>
+          <code className="code num">{code}</code>
           <button
             type="button"
             onClick={async () => {
@@ -79,6 +78,7 @@ export function Lobby(props: {
             </button>
           )}
         </div>
+        <p className="hint">{url}</p>
       </section>
       <section aria-label="Players">
         <h2>
@@ -138,24 +138,26 @@ export function Lobby(props: {
         />
         {!host && <p className="hint">Only the host can change settings.</p>}
       </section>
-      <div className="row">
-        {host && (
-          <button
-            type="button"
-            className="primary big"
-            disabled={busy || props.offline || humans.length < 2}
-            onClick={() => void run({ type: 'StartGame' })}
-          >
-            {humans.length < 2 ? 'Waiting for players (2 needed)' : 'Start game'}
-          </button>
-        )}
-        <button type="button" disabled={busy} onClick={() => void leave()}>
+      <div className="actions">
+        <button type="button" className="ghost" disabled={busy} onClick={() => void leave()}>
           Leave
         </button>
         {host && (
           <button type="button" className="ghost" disabled={busy} onClick={() => void cancel()}>
             Cancel game
           </button>
+        )}
+        {host ? (
+          <button
+            type="button"
+            className="primary big"
+            disabled={busy || props.offline || missing > 0}
+            onClick={() => void run({ type: 'StartGame' })}
+          >
+            {missing > 0 ? `Need ${missing} more player${missing === 1 ? '' : 's'}` : 'Start game'}
+          </button>
+        ) : (
+          <span className="hint">The host starts the game.</span>
         )}
       </div>
     </div>

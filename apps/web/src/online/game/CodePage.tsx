@@ -1,6 +1,7 @@
 // `/g/:code` (SPEC 2 Join code & link): sign-in, join page, "already started", or the game itself.
 import type { JoinLookupResponse } from '@wc/engine';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { HomeLink, Loading, Mark } from '../../home/Brand.tsx';
 import { GameScreen } from '../../local/GameScreen.tsx';
 import { NamePrompt, SignIn } from '../auth/SignIn.tsx';
 import type { AuthState } from '../auth/useSession.ts';
@@ -67,8 +68,8 @@ export function CodePage({ code, auth, navigate }: PageProps) {
   const [state, reload] = useLookup(code, signedIn);
   const home = () => navigate('/');
 
-  if (!auth.ready) return <p className="loading">Loading…</p>;
-  if (signedIn && !auth.profileLoaded) return <p className="loading">Loading…</p>;
+  if (!auth.ready) return <Loading />;
+  if (signedIn && !auth.profileLoaded) return <Loading />;
   if (signedIn && !auth.displayName) return <NamePrompt onSave={auth.saveName} />;
 
   const page: CodePageState = codePage(signedIn, state);
@@ -76,7 +77,7 @@ export function CodePage({ code, auth, navigate }: PageProps) {
     case 'signin':
       return <SignIn onBack={home} reason={`Sign in to open game ${code}. You will come back to this page.`} />;
     case 'loading':
-      return <p className="loading">Loading…</p>;
+      return <Loading />;
     case 'not_found':
       return (
         <Message title="Game not found" onHome={home}>
@@ -145,9 +146,7 @@ function JoinPage(props: {
   return (
     <div className="screen">
       <div className="screen-head">
-        <button type="button" className="ghost" onClick={props.onHome}>
-          ← Home
-        </button>
+        <HomeLink onClick={props.onHome} />
         <h1>Join game</h1>
       </div>
       {error && (
@@ -155,10 +154,11 @@ function JoinPage(props: {
           {error}
         </div>
       )}
-      <section>
+      <section className="invite-card">
+        <Mark size={56} />
         <p>{lookup.hostName ? <b>{lookup.hostName}</b> : 'Someone'} invited you to a game of World Conquest.</p>
         <p className="hint">
-          Code {props.code} · {lookup.players}/{lookup.maxSeats} players
+          Code <span className="num">{props.code}</span> · {lookup.players}/{lookup.maxSeats} players
         </p>
         <button type="button" className="primary big" disabled={busy || full} onClick={() => void join()}>
           {full ? 'Game is full' : 'Join game'}
@@ -203,7 +203,7 @@ function MemberGame(props: {
         <p>{failed}</p>
       </Message>
     ) : (
-      <p className="loading">Loading…</p>
+      <Loading />
     );
   }
   if (view.phase.kind === 'canceled') {

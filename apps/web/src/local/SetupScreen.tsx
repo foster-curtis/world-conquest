@@ -2,6 +2,7 @@
 import { MIN_SEATS, type WinCondition } from '@wc/engine';
 import { useState } from 'react';
 import { COLOR_HEX, COLOR_NAME, PICKABLE_COLORS } from '../board/colors.ts';
+import { HomeLink } from '../home/Brand.tsx';
 import type { PlayerInput } from './controller.ts';
 
 const MAX_PLAYERS = 6;
@@ -40,9 +41,7 @@ export function SetupScreen(props: {
   return (
     <div className="screen setup">
       <header className="screen-head">
-        <button type="button" className="ghost" onClick={props.onBack}>
-          ← Back
-        </button>
+        <HomeLink onClick={props.onBack} />
         <h1>Pass-and-play</h1>
       </header>
       <form

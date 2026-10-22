@@ -1,5 +1,6 @@
 // `/g/:code/replay` and `/g/:code/stats`: members only, after game over. Reuses M3's viewers with ReplayResponse.
 import { useEffect, useState } from 'react';
+import { Loading } from '../../home/Brand.tsx';
 import type { ReplayInput } from '../../replay/frames.ts';
 import { ReplayScreen } from '../../replay/Replay.tsx';
 import { StatsScreen } from '../../stats/Stats.tsx';
@@ -33,10 +34,10 @@ export function ReplayPage(props: PageProps & { stats?: boolean }) {
   }, [code, signedIn]);
 
   const game = () => navigate(gamePath(code));
-  if (!auth.ready || (signedIn && !auth.profileLoaded)) return <p className="loading">Loading…</p>;
+  if (!auth.ready || (signedIn && !auth.profileLoaded)) return <Loading />;
   if (!signedIn) return <SignIn onBack={() => navigate('/')} reason="Sign in to watch this replay." />;
   if (!auth.displayName) return <NamePrompt onSave={auth.saveName} />;
-  if (load.status === 'loading') return <p className="loading">Loading…</p>;
+  if (load.status === 'loading') return <Loading />;
   if (load.status === 'failed') {
     return (
       <Message title="No replay" onHome={game}>

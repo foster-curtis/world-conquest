@@ -1,5 +1,6 @@
 import type { WinCondition } from '@wc/engine';
 import { useCallback, useEffect, useState } from 'react';
+import { Loading } from './home/Brand.tsx';
 import { Home } from './home/Home.tsx';
 import { LocalGame as Local, type LocalGame, type PlayerInput } from './local/controller.ts';
 import { GameScreen } from './local/GameScreen.tsx';
@@ -10,7 +11,7 @@ import { useSession } from './online/auth/useSession.ts';
 import { CodePage } from './online/game/CodePage.tsx';
 import { ReplayPage } from './online/game/ReplayPage.tsx';
 import { CreateGame } from './online/lobby/CreateGame.tsx';
-import { OnlineHome } from './online/OnlineHome.tsx';
+import { Account, OnlineHome } from './online/OnlineHome.tsx';
 import { gamePath, parseRoute, type Route, replayPath } from './online/route.ts';
 import { onlineConfigured, onOutdated } from './online/supabase.ts';
 import { useMyGames } from './online/useMyGames.ts';
@@ -120,7 +121,7 @@ export function App() {
     );
   }
 
-  if (!store) return <p className="loading">Loading…</p>;
+  if (!store) return <Loading />;
 
   const body = renderScreen(store);
   return (
@@ -134,13 +135,13 @@ export function App() {
   function renderScreen(store: SaveStore) {
     switch (screen.kind) {
       case 'online-new':
-        if (!auth.ready) return <p className="loading">Loading…</p>;
+        if (!auth.ready) return <Loading />;
         if (!auth.session) return <SignIn onBack={() => setScreen({ kind: 'home' })} />;
-        if (!auth.profileLoaded) return <p className="loading">Loading…</p>;
+        if (!auth.profileLoaded) return <Loading />;
         if (!auth.displayName) return <NamePrompt onSave={auth.saveName} />;
         return <CreateGame onBack={() => setScreen({ kind: 'home' })} onCreated={(code) => navigate(gamePath(code))} />;
       case 'signin':
-        if (auth.session) return <p className="loading">Loading…</p>;
+        if (auth.session) return <Loading />;
         return <SignIn onBack={() => setScreen({ kind: 'home' })} />;
       case 'setup':
         return <SetupScreen onStart={start} onBack={() => setScreen({ kind: 'home' })} busy={busy} />;
@@ -195,10 +196,13 @@ export function App() {
                   onCreate={() => setScreen({ kind: 'online-new' })}
                   onOpen={(code) => navigate(gamePath(code))}
                   onReplay={(code) => navigate(replayPath(code))}
-                  onSignIn={() => setScreen({ kind: 'signin' })}
                 />
               ) : undefined
             }
+            account={
+              onlineConfigured ? <Account auth={auth} onSignIn={() => setScreen({ kind: 'signin' })} /> : undefined
+            }
+            onlineMove={Boolean(auth.session && my.games && my.games.yourMove.length > 0)}
           />
         );
     }

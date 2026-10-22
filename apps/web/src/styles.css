@@ -60,9 +60,10 @@ button.on {
   background: var(--accent-subtle);
 }
 button.big {
-  min-height: 52px;
-  font-size: 1.1rem;
-  padding: 0 22px;
+  min-height: 48px;
+  min-width: 200px;
+  font-size: 16px;
+  padding: 0 20px;
 }
 input {
   accent-color: var(--foreground);
@@ -122,48 +123,188 @@ kbd {
   height: 22px;
 }
 .loading {
-  padding: 24px;
+  min-height: 100%;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: var(--space-3);
+  color: var(--muted);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .loading .mark {
+    animation: breathe 1.4s var(--ease-out) infinite alternate;
+  }
+}
+@keyframes breathe {
+  to {
+    opacity: 0.45;
+  }
 }
 
 /* ---- screens: home, setup, stats */
 .screen {
   max-width: 760px;
   margin: 0 auto;
-  padding: 20px 16px 48px;
+  padding: var(--space-6) var(--space-4) var(--space-8);
   min-height: 100%;
 }
 .screen h1 {
-  margin: 0 0 16px;
+  margin: 0 0 var(--space-4);
   font-size: 30px;
-}
-.home > h1 {
-  font-size: 48px;
 }
 .screen-head {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
 }
 .screen-head h1 {
   margin: 0;
   flex: 1;
 }
+.home-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-2);
+}
 .screen section {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
-  padding: 14px 16px;
-  margin: 14px 0;
+  padding: var(--space-4);
+  margin: var(--space-4) 0;
 }
 .screen h2 {
-  margin: 0 0 8px;
+  margin: 0 0 var(--space-2);
   font-size: 18px;
 }
+.screen h2 + .hint {
+  margin-top: 0;
+}
+/* Content-width action buttons; full-width thumb targets only on phones. */
 .menu {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin: var(--space-3) 0 0;
+}
+@media (max-width: 480px) {
+  .menu {
+    display: grid;
+  }
+}
+
+/* ---- home */
+.topbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  min-height: 40px;
+}
+.account {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--space-2);
+}
+.hero {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin: var(--space-6) 0 var(--space-8);
+}
+.hero .mark {
+  flex: none;
+}
+.hero h1 {
+  margin: 0;
+  font-size: 48px;
+  line-height: 1.05;
+}
+.tagline {
+  margin: var(--space-2) 0 0;
+  color: var(--muted);
+  font-size: 18px;
+}
+@media (max-width: 480px) {
+  .hero h1 {
+    font-size: 36px;
+  }
+  .hero .mark {
+    width: 44px;
+    height: 44px;
+  }
+}
+.home h3 {
+  margin: var(--space-6) 0 var(--space-2);
+  font-size: 15px;
+}
+.home h4 {
+  margin: var(--space-4) 0 0;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.join-form {
+  margin-top: var(--space-4);
+}
+.join-form input {
+  flex: 1;
+  min-width: 0;
+  max-width: 320px;
+}
+.site-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-8);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 13px;
+}
+.site-footer a {
+  color: inherit;
+  text-underline-offset: 3px;
+}
+.site-footer a:hover {
+  color: var(--foreground);
+}
+
+/* ---- lobby and join page */
+.invite {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-6);
+}
+.actions > :last-child {
+  margin-left: auto;
+}
+.invite-card {
   display: grid;
-  gap: 10px;
-  margin: 12px 0 20px;
+  justify-items: center;
+  gap: var(--space-2);
+  text-align: center;
+  padding: var(--space-8) var(--space-4);
+}
+.invite-card p {
+  margin: 0;
+}
+.invite-card button {
+  margin-top: var(--space-3);
 }
 .banner {
   padding: 10px 14px;
@@ -195,10 +336,10 @@ kbd {
 .saves li {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--space-2);
   align-items: center;
   justify-content: space-between;
-  padding: 10px 0;
+  padding: var(--space-3) 0;
   border-top: 1px solid var(--border);
 }
 .saves li:first-child {
@@ -210,14 +351,14 @@ kbd {
 .plist {
   list-style: none;
   padding: 0;
-  margin: 8px 0;
+  margin: var(--space-2) 0;
   display: grid;
-  gap: 10px;
+  gap: var(--space-3);
 }
 .plist li {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--space-2);
   align-items: center;
 }
 .plist input[type="text"] {
@@ -1144,6 +1285,15 @@ kbd {
   display: grid;
   gap: 4px;
 }
+.stack > button {
+  justify-self: start;
+  min-width: 160px;
+}
+/* Lobby and new-game settings: two columns when there is room, instead of 700px-wide selects. */
+.settings {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-3) var(--space-4);
+}
 .stack input,
 .stack select,
 .row input,
@@ -1159,6 +1309,10 @@ kbd {
 .code {
   font-size: 1.4rem;
   letter-spacing: 0.15em;
+}
+.invite .code {
+  font-size: 32px;
+  margin-right: var(--space-2);
 }
 .timer {
   display: inline-flex;

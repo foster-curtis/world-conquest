@@ -1,6 +1,7 @@
 // New online game: settings, then the function creates it and we go to its permanent /g/CODE URL.
 import { defaultSettings } from '@wc/engine';
 import { useState } from 'react';
+import { HomeLink } from '../../home/Brand.tsx';
 import { ApiException } from '../api.ts';
 import { gameApi } from '../supabase.ts';
 import { type EditableSettings, patchSettings, SettingsForm } from './SettingsForm.tsx';
@@ -31,9 +32,7 @@ export function CreateGame(props: { onCreated: (code: string) => void; onBack: (
   return (
     <div className="screen">
       <div className="screen-head">
-        <button type="button" className="ghost" onClick={props.onBack}>
-          ← Home
-        </button>
+        <HomeLink onClick={props.onBack} />
         <h1>New online game</h1>
       </div>
       {error && (
